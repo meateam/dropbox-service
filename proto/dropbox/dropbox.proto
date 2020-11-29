@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package dropbox;
+
+service Dropbox {
+    rpc GetApproverInfo(GetApproverInfoRequest) returns (GetApproverInfoResponse) {}
+    rpc CanApproveToUser(CanApproveToUserRequest) returns (CanApproveToUserResponse) {}
+    rpc CreatePermit(CreatePermitRequest) returns (CreatePermitResponse) {}
+    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+}
+
+message Unit {
+    string name =1;
+    repeated string approvers = 2;
+}
+
+message ApproverInfo {
+    string userId = 1;
+    bool isAdmin = 2;
+    bool isApprover = 3;
+    bool isBlocked = 4;
+    Unit unit = 5;
+}
+
+message GetApproverInfoRequest {
+    string id = 1;
+}
+
+message GetApproverInfoResponse {
+    ApproverInfo approverInfo =  1;
+}
+
+message CanApproveToUserRequest {
+    string approverID = 1;
+    string userID = 2;
+}
+
+message CanApproveToUserResponse {
+    bool canApproveToUser = 1;
+    repeated string cantApproveReasons = 2;
+}
+
+message CreatePermitRequest {
+    string fileID = 1;
+    string sharerID = 2;
+    repeated User users = 3;
+    string classification = 4;
+    string info = 5;
+    repeated string approvers = 6;
+    string fileName = 7;
+}
+
+message User {
+    string id = 1;
+    string full_name = 2;
+}
+
+message CreatePermitResponse {}
+
+
+message GetStatusRequest {
+
+}
+
+message GetStatusResponse {
+
+}
