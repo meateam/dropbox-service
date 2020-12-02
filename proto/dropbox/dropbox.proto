@@ -5,7 +5,7 @@ package dropbox;
 service Dropbox {
     rpc GetApproverInfo(GetApproverInfoRequest) returns (GetApproverInfoResponse) {}
     rpc CanApproveToUser(CanApproveToUserRequest) returns (CanApproveToUserResponse) {}
-    rpc CreatePermit(CreatePermitRequest) returns (CreatePermitResponse) {}
+    rpc CreateRequest(CreateRequestRequest) returns (CreateRequestResponse) {}
     rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
 }
 
@@ -40,7 +40,7 @@ message CanApproveToUserResponse {
     repeated string cantApproveReasons = 2;
 }
 
-message CreatePermitRequest {
+message CreateRequestRequest {
     string fileID = 1;
     string sharerID = 2;
     repeated User users = 3;
@@ -55,7 +55,7 @@ message User {
     string full_name = 2;
 }
 
-message CreatePermitResponse {}
+message CreateRequestResponse {}
 
 
 message GetStatusRequest {
