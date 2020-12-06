@@ -1,7 +1,7 @@
 import { config } from '../config';
 
-const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
+const grpc = require('grpc');
 
 const packageDefinition = protoLoader.loadSync('../../proto/dropbox/dropbox.proto');
 const spike_proto = grpc.loadPackageDefinition(packageDefinition).spike;

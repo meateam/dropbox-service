@@ -1,15 +1,16 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { IApproverInfo, ICanApproveToUser, IApprovalRequest } from './approvers.interface';
-import { config } from '../config';
 import { ApprovalError, UserNotFoundError, ApplicationError } from '../utils/errors/errors';
+import { config } from '../config';
+import { getToken } from "../spike/spike.service";
 
 export class ApprovalService {
 
     private instance: AxiosInstance;
 
-    constructor(token: string) {
+    constructor() {
         this.instance = Axios.create({ baseURL: config.approval.approvalUrl });
-        this.instance.defaults.headers.common['Authorization'] = token;
+        this.addAuthIntreceptor();
     }
 
     async createRequest(data: IApprovalRequest) {
@@ -73,5 +74,10 @@ export class ApprovalService {
                 throw new ApplicationError(`Unknown Error while contacting the approval service : ${err}`);
             }
         }
+    }
+
+    private async addAuthIntreceptor() {
+        const token = await getToken(config.spike.audiance, config.spike.grantType);
+        this.instance.defaults.headers.common['Authorization'] = token;
     }
 }

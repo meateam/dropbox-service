@@ -15,7 +15,7 @@ export interface ICanApproveToUser {
 }
 
 export interface IApprovalRequest {
-    id: string;
+    id?: string;
     from: string;
     approvers: string[];
     to: IUser[];
@@ -25,7 +25,7 @@ export interface IApprovalRequest {
     classification: string;
 }
 
-interface IUser {
+export interface IUser {
     id: string;
     name: string;
 }

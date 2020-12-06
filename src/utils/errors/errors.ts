@@ -1,6 +1,6 @@
 import { statusToString } from './grpc.status';
+import * as grpc from 'grpc';
 
-const grpc = require('@grpc/grpc-js');
 /**
  * This file contains extended errors for the application.
  */

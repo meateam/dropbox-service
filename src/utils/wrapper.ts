@@ -1,4 +1,4 @@
-import * as grpc from '@grpc/grpc-js';
+import * as grpc from 'grpc';
 import * as apm from 'elastic-apm-node';
 import * as _ from 'lodash';
 import { Severity, log } from "./logger";
@@ -66,8 +66,8 @@ export function getCurrTraceId(): string {
  * @param func - the method called and wrapped.
  */
 export function wrapper(func: Function):
-    (call: grpc.ServerUnaryCall<any, any>, callback: grpc.requestCallback<Object>) => Promise<void> {
-    return async (call: grpc.ServerUnaryCall<any, any>, callback: grpc.requestCallback<Object>) => {
+    (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => Promise<void> {
+    return async (call: grpc.ServerUnaryCall<Object>, callback: grpc.requestCallback<Object>) => {
         try {
             const traceparent: grpc.MetadataValue[] = call.metadata.get('elastic-apm-traceparent');
             const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
