@@ -32,6 +32,12 @@ export class ClientError extends ApplicationError {
     }
 }
 
+export class TransferError extends ClientError {
+    constructor(message?: string) {
+        super(message || 'transfer creation faild', grpc.status.FAILED_PRECONDITION);
+    }
+}
+
 export class UserNotFoundError extends ClientError {
     constructor(message?: string) {
         super(message || 'The requested user was not found', grpc.status.NOT_FOUND);

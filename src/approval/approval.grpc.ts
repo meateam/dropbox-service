@@ -1,6 +1,8 @@
 import * as grpc from 'grpc';
 import { ApprovalService } from "./approval.service";
-import { IApprovalRequest, IApproverInfo, ICanApproveToUser, IUser } from "./approvers.interface";
+import { TransferRepository } from "../transfer/transfer.repository";
+import { IApproverInfo, ICanApproveToUser, IUser } from "./approvers.interface";
+import { TransferError } from '../utils/errors/errors';
 
 const approvalService: ApprovalService = new ApprovalService();
 
@@ -28,17 +30,21 @@ export class ApprovalMethods {
         const to: IUser[] = params.users.map((user: any) => { return { id: user.id, name: user.full_name } });
         const approvers = call.request.approvers;
         approvers.push(call.request.sharerID);
-        const reqID = "";
+
+        const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination })
+        if (!transfer) throw new TransferError();
 
         await approvalService.createRequest({
             to,
             approvers,
-            id: reqID,
+            id: transfer._id,
             fileID: params.fileID,
             fileName: params.fileName,
             from: params.sharerID,
             info: params.info,
             classification: params.classification,
         });
+
+        return {};
     }
 }
