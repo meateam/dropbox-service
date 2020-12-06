@@ -3,82 +3,77 @@ syntax = "proto3";
 package dropbox;
 
 service Dropbox {
-    rpc GetApproverInfo(GetApproverInfoRequest) returns (GetApproverInfoResponse) {}
-    rpc CanApproveToUser(CanApproveToUserRequest) returns (CanApproveToUserResponse) {}
-    rpc CreateRequest(CreateRequestRequest) returns (CreateRequestResponse) {}
-    rpc HasTransfer(HasTransferRequest) returns (HasTransferResponse) {}
-    rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
+  rpc GetApproverInfo(GetApproverInfoRequest) returns(GetApproverInfoResponse) {
+  }
+  rpc CanApproveToUser(CanApproveToUserRequest)
+      returns(CanApproveToUserResponse) {}
+  rpc CreateRequest(CreateRequestRequest) returns(CreateRequestResponse) {}
+  rpc HasTransfer(HasTransferRequest) returns(HasTransferResponse) {}
+  rpc GetTransfersInfo(GetTransfersInfoRequest)
+      returns(GetTransfersInfoResponse) {}
 }
 
 message Unit {
-    string name =1;
-    repeated string approvers = 2;
+  string name = 1;
+  repeated string approvers = 2;
 }
 
 message ApproverInfo {
-    string userId = 1;
-    bool isAdmin = 2;
-    bool isApprover = 3;
-    bool isBlocked = 4;
-    Unit unit = 5;
+  string userId = 1;
+  bool isAdmin = 2;
+  bool isApprover = 3;
+  bool isBlocked = 4;
+  Unit unit = 5;
 }
 
-message GetApproverInfoRequest {
-    string id = 1;
-}
+message GetApproverInfoRequest { string id = 1; }
 
-message GetApproverInfoResponse {
-    ApproverInfo approverInfo =  1;
-}
+message GetApproverInfoResponse { ApproverInfo approverInfo = 1; }
 
 message CanApproveToUserRequest {
-    string approverID = 1;
-    string userID = 2;
+  string approverID = 1;
+  string userID = 2;
 }
 
 message CanApproveToUserResponse {
-    bool canApproveToUser = 1;
-    repeated string cantApproveReasons = 2;
+  bool canApproveToUser = 1;
+  repeated string cantApproveReasons = 2;
 }
 
 message CreateRequestRequest {
-    string fileID = 1;
-    string sharerID = 2;
-    repeated User users = 3;
-    string classification = 4;
-    string info = 5;
-    repeated string approvers = 6;
-    string fileName = 7;
+  string fileID = 1;
+  string sharerID = 2;
+  repeated User users = 3;
+  string classification = 4;
+  string info = 5;
+  repeated string approvers = 6;
+  string fileName = 7;
 }
 
 message User {
-    string id = 1;
-    string full_name = 2;
+  string id = 1;
+  string name = 2;
 }
 
 message CreateRequestResponse {}
 
 message HasTransferRequest {
-    string fileID = 1;
-    string userID = 2;
+  string fileID = 1;
+  string userID = 2;
 }
 
-message HasTransferResponse {
-    bool HasTransfer = 1;
+message HasTransferResponse { bool HasTransfer = 1; }
+
+message GetTransfersInfoRequest {
+  string fileID = 1;
+  string userID = 2;
 }
 
-
-
-
-
-
-
-// TODO
-
-message GetStatusRequest {
-
-}
-
-message GetStatusResponse {
-
+message GetTransfersInfoResponse {
+  string fileID = 1;
+  string from = 2;
+  string destination = 3;
+  string status = 4;
+  int64 createdAt = 5;
+  repeated User to = 6;
 }

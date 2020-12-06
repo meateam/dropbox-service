@@ -8,4 +8,7 @@ export const config = {
     approval: {
         approvalUrl: process.env.APPROVAL_URL || 'http://localhost',
     },
+    status: {
+        statusUrl: process.env.STATUS_URL || 'http://localhost',
+    }
 }

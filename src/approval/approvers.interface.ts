@@ -1,3 +1,5 @@
+import { IUser } from "../utils/user.interface";
+
 export interface IApproverInfo {
     userId: string;
     isAdmin: boolean;
@@ -23,9 +25,4 @@ export interface IApprovalRequest {
     fileName: string;
     info: string;
     classification: string;
-}
-
-export interface IUser {
-    id: string;
-    name: string;
 }
