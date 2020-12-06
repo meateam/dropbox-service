@@ -6,6 +6,7 @@ service Dropbox {
     rpc GetApproverInfo(GetApproverInfoRequest) returns (GetApproverInfoResponse) {}
     rpc CanApproveToUser(CanApproveToUserRequest) returns (CanApproveToUserResponse) {}
     rpc CreateRequest(CreateRequestRequest) returns (CreateRequestResponse) {}
+    rpc HasTransfer(HasTransferRequest) returns (HasTransferResponse) {}
     rpc GetStatus(GetStatusRequest) returns (GetStatusResponse) {}
 }
 
@@ -57,6 +58,22 @@ message User {
 
 message CreateRequestResponse {}
 
+message HasTransferRequest {
+    string fileID = 1;
+    string userID = 2;
+}
+
+message HasTransferResponse {
+    bool HasTransfer = 1;
+}
+
+
+
+
+
+
+
+// TODO
 
 message GetStatusRequest {
 
