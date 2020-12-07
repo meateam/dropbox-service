@@ -19,8 +19,12 @@ export class TransferRepository {
         return transfer;
     }
 
-    static async exist(filter: Partial<ITransfer>): Promise<boolean> {
+    static async exists(filter: Partial<ITransfer>): Promise<boolean> {
         const exists: boolean = await transferModel.exists(filter);
         return exists;
+    }
+
+    static async deleteByID(id: string) {
+        await transferModel.deleteOne({ _id: id })
     }
 }

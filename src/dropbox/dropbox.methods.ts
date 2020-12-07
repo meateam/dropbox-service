@@ -3,7 +3,7 @@ import { ApprovalService } from "../approval/approval.service";
 import { StatusService } from "../status/status.service";
 import { TransferRepository } from "../transfer/transfer.repository";
 import { IApproverInfo, ICanApproveToUser } from "../approval/approvers.interface";
-import { TransferError } from '../utils/errors/errors';
+import { TransferError, NotFoundError } from '../utils/errors/errors';
 import { ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
 
@@ -16,6 +16,7 @@ export class DropboxMethods {
         const fileID = call.request.fileID;
         const userID = call.request.userID;
         const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
+        if (!transfers.length) throw new NotFoundError();
 
         const transfersInfo: Promise<ITransferInfo[]> = Promise.all(transfers.map(async (transfer: ITransfer) => {
             const info = await statusService.getStatus(transfer._id || "");
@@ -36,7 +37,8 @@ export class DropboxMethods {
     static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
         const userID: string = call.request.userID;
         const fileID: string = call.request.fileID;
-        const hasTransfer: boolean = await TransferRepository.exist({ userID, fileID });
+        const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID });
+        console.log({ hasTransfer })
 
         return { hasTransfer };
     }
@@ -48,7 +50,6 @@ export class DropboxMethods {
         return { approverInfo };
     }
 
-
     static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
         const userID: string = call.request.userID;
         const approverID: string = call.request.approverID;
@@ -57,13 +58,13 @@ export class DropboxMethods {
         return canApprove;
     }
 
-
     static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
         const params = call.request;
         const approvers = call.request.approvers;
         approvers.push(call.request.sharerID);
 
-        const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination })
+        const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination });
+        console.log(transfer)
         if (!transfer) throw new TransferError();
 
         await approvalService.createRequest({
@@ -76,6 +77,7 @@ export class DropboxMethods {
             info: params.info,
             classification: params.classification,
         });
+
 
         return {};
     }

@@ -1,6 +1,6 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { IStatus } from './status.interface';
-import { ApprovalError, UserNotFoundError, ApplicationError } from '../utils/errors/errors';
+import { ApprovalError, NotFoundError, ApplicationError } from '../utils/errors/errors';
 import { config } from '../config';
 import { getToken } from "../spike/spike.service";
 
@@ -30,7 +30,7 @@ export class StatusService {
             if (err.response && err.response.status) {
                 const status: number = err.response.status;
                 if (status === 404) {
-                    throw new UserNotFoundError(`The user with id ${id} is not found`);
+                    throw new NotFoundError(`The user with id ${id} is not found`);
                 } else if (status === 502) {
                     throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
                 }

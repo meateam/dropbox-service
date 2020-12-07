@@ -62,7 +62,7 @@ message HasTransferRequest {
   string userID = 2;
 }
 
-message HasTransferResponse { bool HasTransfer = 1; }
+message HasTransferResponse { bool hasTransfer = 1; }
 
 message GetTransfersInfoRequest {
   string fileID = 1;

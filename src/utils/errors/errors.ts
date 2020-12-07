@@ -38,9 +38,9 @@ export class TransferError extends ClientError {
     }
 }
 
-export class UserNotFoundError extends ClientError {
+export class NotFoundError extends ClientError {
     constructor(message?: string) {
-        super(message || 'The requested user was not found', grpc.status.NOT_FOUND);
+        super(message || 'The requested was not found', grpc.status.NOT_FOUND);
     }
 }
 
@@ -53,5 +53,11 @@ export class SpikeError extends ApplicationError {
 export class ApprovalError extends ApplicationError {
     constructor(message?: string) {
         super(message || 'Error contacting approval service', grpc.status.UNAVAILABLE);
+    }
+}
+
+export class UnauthorizedError extends ApplicationError {
+    constructor(message?: string) {
+        super(message || 'Unauthorized', grpc.status.UNAUTHENTICATED);
     }
 }

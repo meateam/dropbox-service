@@ -3,7 +3,7 @@ import { config } from '../config';
 const protoLoader = require('@grpc/proto-loader');
 const grpc = require('grpc');
 
-const packageDefinition = protoLoader.loadSync('../../proto/dropbox/dropbox.proto');
+const packageDefinition = protoLoader.loadSync('./proto/spike/spike.proto');
 const spike_proto = grpc.loadPackageDefinition(packageDefinition).spike;
 
 export async function getToken(audience: string, grant_type: string): Promise<string> {

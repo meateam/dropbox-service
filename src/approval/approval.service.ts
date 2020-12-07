@@ -1,8 +1,9 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { IApproverInfo, ICanApproveToUser, IApprovalRequest } from './approvers.interface';
-import { ApprovalError, UserNotFoundError, ApplicationError } from '../utils/errors/errors';
+import { ApprovalError, NotFoundError, ApplicationError, UnauthorizedError } from '../utils/errors/errors';
 import { config } from '../config';
 import { getToken } from "../spike/spike.service";
+import { TransferRepository } from '../transfer/transfer.repository';
 
 export class ApprovalService {
 
@@ -18,7 +19,19 @@ export class ApprovalService {
             const res: AxiosResponse = await this.instance.post(`/api/v1/request`, data);
             return res.data;
         } catch (err) {
-            throw new Error(err);
+            // await TransferRepository.deleteByID(data.id || "");
+            if (!err.response || !err.response.status) throw new ApplicationError();
+
+            const status: number = err.response.status;
+            if (status === 401) {
+                throw new UnauthorizedError('request was not authorized')
+            }
+            else if (status === 404) {
+                throw new NotFoundError(`The user is not found`);
+            } else if (status === 502) {
+                throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
+            }
+            throw new ApprovalError(`Error in contacting the approval service : ${JSON.stringify(err)}`);
         }
 
     }
@@ -38,7 +51,7 @@ export class ApprovalService {
             if (err.response && err.response.status) {
                 const status: number = err.response.status;
                 if (status === 404) {
-                    throw new UserNotFoundError(`The user with id ${id} is not found`);
+                    throw new NotFoundError(`The user with id ${id} is not found`);
                 } else if (status === 502) {
                     throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
                 }
@@ -65,7 +78,7 @@ export class ApprovalService {
             if (err.response && err.response.status) {
                 const status: number = err.response.status;
                 if (status === 404) {
-                    throw new UserNotFoundError('One of the users were not found');
+                    throw new NotFoundError('One of the users were not found');
                 } else if (status === 502) {
                     throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
                 }
@@ -78,6 +91,6 @@ export class ApprovalService {
 
     private async addAuthIntreceptor() {
         const token = await getToken(config.spike.audiance, config.spike.grantType);
-        this.instance.defaults.headers.common['Authorization'] = token;
+        this.instance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 }

@@ -16,7 +16,7 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     },
     destination: {
         type: Destination,
-        required: true,
+        required: false,
     }
 });
 

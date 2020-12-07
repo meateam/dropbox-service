@@ -33,16 +33,14 @@ function extractReqLog(req: any): object {
     const logInfo: any = _.cloneDeep(req);
     const query: any = {};
     if (req.queryFile) {
-        const ignoreFields = ['size', 'createdAt', 'updatedAt', 'children'];
         if (req.queryFile['size']) {
             if (req.queryFile['size'].toString() !== '0') {
                 query['size'] = Number(req.queryFile['size']);
             }
         }
         for (const prop in req.queryFile) {
-            if (req.queryFile[prop] && !ignoreFields.includes(prop)) {
-                query[prop] = req.queryFile[prop];
-            }
+
+            query[prop] = req.queryFile[prop];
         }
     }
     logInfo.queryFile = query;
@@ -71,7 +69,7 @@ export function wrapper(func: Function):
         try {
             const traceparent: grpc.MetadataValue[] = call.metadata.get('elastic-apm-traceparent');
             const transOptions = (traceparent.length > 0) ? { childOf: traceparent[0].toString() } : {};
-            apm.startTransaction(`/file.FileService/${func.name}`, 'request', transOptions);
+            apm.startTransaction(`/dropbox.dropboxService/${func.name}`, 'request', transOptions);
             const traceID: string = getCurrTraceId();
             const reqInfo: object = extractReqLog(call.request);
             log(Severity.INFO, 'request', func.name, traceID, reqInfo);
