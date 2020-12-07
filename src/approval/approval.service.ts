@@ -19,19 +19,19 @@ export class ApprovalService {
             const res: AxiosResponse = await this.instance.post(`/api/v1/request`, data);
             return res.data;
         } catch (err) {
-            // await TransferRepository.deleteByID(data.id || "");
+            await TransferRepository.deleteByID(data.id || "");
             if (!err.response || !err.response.status) throw new ApplicationError();
 
             const status: number = err.response.status;
             if (status === 401) {
-                throw new UnauthorizedError('request was not authorized')
+                throw new UnauthorizedError(`request was not authorized: ${err.message}`)
             }
             else if (status === 404) {
                 throw new NotFoundError(`The user is not found`);
             } else if (status === 502) {
-                throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
+                throw new ApprovalError(`Error was thrown by the approval service : ${err.message}`);
             }
-            throw new ApprovalError(`Error in contacting the approval service : ${JSON.stringify(err)}`);
+            throw new ApprovalError(`Error in contacting the approval service : ${err.message}`);
         }
 
     }
@@ -53,11 +53,11 @@ export class ApprovalService {
                 if (status === 404) {
                     throw new NotFoundError(`The user with id ${id} is not found`);
                 } else if (status === 502) {
-                    throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
+                    throw new ApprovalError(`Error was thrown by the approval service : ${err.message}`);
                 }
-                throw new ApprovalError(`Error in contacting the approval service : ${JSON.stringify(err)}`);
+                throw new ApprovalError(`Error in contacting the approval service : ${err.message}`);
             } else {
-                throw new ApplicationError(`Unknown Error while contacting the approval service : ${err}`);
+                throw new ApplicationError(`Unknown Error while contacting the approval service : ${err.message}`);
             }
         }
     }
@@ -80,11 +80,11 @@ export class ApprovalService {
                 if (status === 404) {
                     throw new NotFoundError('One of the users were not found');
                 } else if (status === 502) {
-                    throw new ApprovalError(`Error was thrown by the approval service : ${JSON.stringify(err)}`);
+                    throw new ApprovalError(`Error was thrown by the approval service : ${err.message}`);
                 }
-                throw new ApprovalError(`Error in contacting the approval service : ${JSON.stringify(err)}`);
+                throw new ApprovalError(`Error in contacting the approval service : ${err.message}`);
             } else {
-                throw new ApplicationError(`Unknown Error while contacting the approval service : ${err}`);
+                throw new ApplicationError(`Unknown Error while contacting the approval service : ${err.message}`);
             }
         }
     }
