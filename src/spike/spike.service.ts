@@ -1,21 +1,14 @@
 import { config } from '../config';
 
-const protoLoader = require('@grpc/proto-loader');
-const grpc = require('grpc');
+const GrpcClient = require('grpc-conn-pool');
 
-const packageDefinition = protoLoader.loadSync('./proto/spike/spike.proto');
-const spike_proto = grpc.loadPackageDefinition(packageDefinition).spike;
+const client = new GrpcClient("./proto/spike/spike.proto", { serverUrl: config.spike.spikeUrl, serviceName: "Spike", packageName: "spike" });
 
 export async function getToken(audience: string, grant_type: string): Promise<string> {
-    const client = await new spike_proto.Spike(config.spike.spikeUrl, grpc.credentials.createInsecure());
-
-    return new Promise((resolve, reject) => {
-        client.GetSpikeToken({ grant_type, audience }, (err: Error, response: any) => {
-            if (err) {
-                reject(`Error contacting spike: ${err}`);
-            } else {
-                resolve(response.token);
-            }
-        });
-    });
+    try {
+        const token = await client.GetSpikeToken({ grant_type, audience });
+        return token;
+    } catch (err) {
+        throw new Error(err);
+    }
 }
