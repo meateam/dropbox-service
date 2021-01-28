@@ -13,15 +13,7 @@ import { ApplicationError } from './errors/errors';
 function extractResLog(res: any): object {
     if (!res) return {};
 
-    const logInfo = _.cloneDeep(res);
-    if (res.files) {
-        const ids: { id: string }[] = [];
-        for (let i = 0; i < res.files.length; i++) {
-            ids[i] = res.files[i].id;
-        }
-        logInfo.files = { ids, length: ids.length };
-    }
-    return logInfo;
+    return _.cloneDeep(res);
 }
 
 /**
@@ -30,21 +22,7 @@ function extractResLog(res: any): object {
  * @param req - the call.request received in the service.
  */
 function extractReqLog(req: any): object {
-    const logInfo: any = _.cloneDeep(req);
-    const query: any = {};
-    if (req.queryFile) {
-        if (req.queryFile['size']) {
-            if (req.queryFile['size'].toString() !== '0') {
-                query['size'] = Number(req.queryFile['size']);
-            }
-        }
-        for (const prop in req.queryFile) {
-
-            query[prop] = req.queryFile[prop];
-        }
-    }
-    logInfo.queryFile = query;
-    return logInfo;
+    return _.cloneDeep(req);
 }
 
 
@@ -53,6 +31,7 @@ export function getCurrTraceId(): string {
         return apm.currentTransaction ? apm.currentTransaction.traceparent.split('-')[1] : '';
     } catch (err) {
         // Should never get here. The log is set after apm starts.
+        log(Severity.ERROR, 'error on getting trace id', 'apm');
         return '';
     }
 }

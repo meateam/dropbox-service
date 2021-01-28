@@ -24,6 +24,11 @@ export class TransferRepository {
         return exists;
     }
 
+    static async updateByID(id: string, value: Partial<ITransfer>) {
+        const transfer: ITransfer = await transferModel.update({ _id: id }, value)
+        return transfer;
+    }
+
     static async deleteByID(id: string) {
         await transferModel.deleteOne({ _id: id })
     }

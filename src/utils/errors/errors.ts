@@ -56,8 +56,3 @@ export class ApprovalError extends ApplicationError {
     }
 }
 
-export class UnauthorizedError extends ApplicationError {
-    constructor(message?: string) {
-        super(message || 'Unauthorized', grpc.status.UNAUTHENTICATED);
-    }
-}

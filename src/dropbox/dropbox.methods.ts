@@ -18,18 +18,24 @@ export class DropboxMethods {
         const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
         if (!transfers.length) throw new NotFoundError();
 
-        const transfersInfo: Promise<ITransferInfo[]> = Promise.all(transfers.map(async (transfer: ITransfer) => {
-            const info = await statusService.getStatus(transfer._id || "");
+        const transfersInfo: Promise<ITransferInfo[]> = Promise.all(
+            transfers.map(async (transfer: ITransfer) => {
+                const transferID = transfer._id;
 
-            return {
-                fileID: transfer.fileID,
-                from: transfer.userID,
-                createdAt: transfer.createdAt,
-                destination: transfer.destination,
-                to: info.users,
-                status: info.status,
-            }
-        }));
+                if (!transferID) throw new NotFoundError();
+
+                const info = await statusService.getStatus(transferID);
+                await TransferRepository.updateByID(transferID, { status: info.status });
+
+                return {
+                    fileID: transfer.fileID,
+                    from: transfer.userID,
+                    createdAt: transfer.createdAt,
+                    destination: transfer.destination,
+                    to: info.users,
+                    status: info.status || transfer.status || "???",
+                }
+            }));
 
         return transfersInfo;
     }
@@ -38,16 +44,15 @@ export class DropboxMethods {
         const userID: string = call.request.userID;
         const fileID: string = call.request.fileID;
         const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID });
-        console.log({ hasTransfer })
 
         return { hasTransfer };
     }
 
-    static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<{ approverInfo: IApproverInfo }> {
+    static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<IApproverInfo> {
         const id: string = call.request.id;
         const approverInfo: IApproverInfo = await approvalService.getApproverInfo(id);
 
-        return { approverInfo };
+        return approverInfo;
     }
 
     static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
@@ -64,7 +69,6 @@ export class DropboxMethods {
         approvers.push(call.request.sharerID);
 
         const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination });
-        console.log(transfer)
         if (!transfer) throw new TransferError();
 
         await approvalService.createRequest({

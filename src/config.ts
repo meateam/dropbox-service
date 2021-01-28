@@ -10,6 +10,7 @@ export const config = {
     },
     approval: {
         approvalUrl: process.env.APPROVAL_URL || 'http://localhost',
+        defaultDestination: process.env.DEFAULT_DESTINATION || 'Z'
     },
     status: {
         statusUrl: process.env.STATUS_URL || 'http://localhost',

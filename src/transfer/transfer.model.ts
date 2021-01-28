@@ -1,4 +1,5 @@
 import * as mongoose from 'mongoose';
+import { config } from '../config';
 import { Destination, ITransfer } from "./transfer.interface";
 
 const transferScheme: mongoose.Schema = new mongoose.Schema({
@@ -16,6 +17,11 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     },
     destination: {
         type: Destination,
+        default: config.approval.defaultDestination,
+        required: false,
+    },
+    status: {
+        type: String,
         required: false,
     }
 });

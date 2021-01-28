@@ -3,32 +3,24 @@ syntax = "proto3";
 package dropbox;
 
 service Dropbox {
-  rpc GetApproverInfo(GetApproverInfoRequest) returns(GetApproverInfoResponse) {
-  }
-  rpc CanApproveToUser(CanApproveToUserRequest)
-      returns(CanApproveToUserResponse) {}
+  rpc GetApproverInfo(GetApproverInfoRequest) returns(GetApproverInfoResponse) {}
+  rpc CanApproveToUser(CanApproveToUserRequest) returns(CanApproveToUserResponse) {}
   rpc CreateRequest(CreateRequestRequest) returns(CreateRequestResponse) {}
   rpc HasTransfer(HasTransferRequest) returns(HasTransferResponse) {}
-  rpc GetTransfersInfo(GetTransfersInfoRequest)
-      returns(GetTransfersInfoResponse) {}
+  rpc GetTransfersInfo(GetTransfersInfoRequest) returns(GetTransfersInfoResponse) {}
 }
 
-message Unit {
-  string name = 1;
-  repeated string approvers = 2;
+message GetApproverInfoRequest { 
+  string id = 1; 
 }
 
-message ApproverInfo {
+message GetApproverInfoResponse { 
   string userId = 1;
   bool isAdmin = 2;
   bool isApprover = 3;
   bool isBlocked = 4;
-  Unit unit = 5;
+  string unitName = 5;
 }
-
-message GetApproverInfoRequest { string id = 1; }
-
-message GetApproverInfoResponse { ApproverInfo approverInfo = 1; }
 
 message CanApproveToUserRequest {
   string approverID = 1;
@@ -62,7 +54,9 @@ message HasTransferRequest {
   string userID = 2;
 }
 
-message HasTransferResponse { bool hasTransfer = 1; }
+message HasTransferResponse { 
+  bool hasTransfer = 1; 
+}
 
 message GetTransfersInfoRequest {
   string fileID = 1;

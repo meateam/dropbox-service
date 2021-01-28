@@ -5,10 +5,7 @@ export interface IApproverInfo {
     isAdmin: boolean;
     isApprover: boolean;
     isBlocked: boolean;
-    unit: {
-        name: string;
-        approvers: string[];
-    };
+    unitName: string;
 }
 
 export interface ICanApproveToUser {
@@ -16,7 +13,7 @@ export interface ICanApproveToUser {
     cantApproveReasons?: string[];
 }
 
-export interface IApprovalRequest {
+export interface IRequest {
     id?: string;
     from: string;
     approvers: string[];

@@ -29,13 +29,13 @@ export class Server {
             serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
         });
 
-        this.initialProto();
+        this.initiateProto();
         this.addServices();
         this.server.bind(address, grpc.ServerCredentials.createInsecure());
         log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
     }
 
-    private initialProto() {
+    private initiateProto() {
         const DROPBOX_PROTO_PATH: string = './proto/dropbox/dropbox.proto';
 
         // Suggested options for similarity to existing grpc.load behavior
@@ -67,5 +67,9 @@ export class Server {
         };
 
         this.server.addService(this.dropbox_proto.Dropbox.service, dropboxService);
+    }
+
+    public setHealthStatus(status: number): void {
+        serviceNames.forEach((serviceName) => this.grpcHealthCheck.setStatus(serviceName, status));
     }
 }
