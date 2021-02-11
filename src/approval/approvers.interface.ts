@@ -1,3 +1,4 @@
+import { Destination } from "../transfer/transfer.interface";
 import { IUser } from "../utils/user.interface";
 
 export interface IApproverInfo {
@@ -22,4 +23,5 @@ export interface IRequest {
     fileName: string;
     info: string;
     classification: string;
+    destination: Destination;
 }

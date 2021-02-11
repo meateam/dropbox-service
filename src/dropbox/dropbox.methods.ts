@@ -4,18 +4,19 @@ import { StatusService } from "../status/status.service";
 import { TransferRepository } from "../transfer/transfer.repository";
 import { IApproverInfo, ICanApproveToUser } from "../approval/approvers.interface";
 import { TransferError, NotFoundError } from '../utils/errors/errors';
-import { ITransfer } from '../transfer/transfer.interface';
+import { Destination, ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
 
 const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
-
     static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<ITransferInfo[]> {
         const fileID = call.request.fileID;
         const userID = call.request.userID;
-        const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
+        const destination = call.request.destination;
+
+        const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID, destination });
         if (!transfers.length) throw new NotFoundError();
 
         const transfersInfo: Promise<ITransferInfo[]> = Promise.all(
@@ -24,7 +25,7 @@ export class DropboxMethods {
 
                 if (!transferID) throw new NotFoundError();
 
-                const info = await statusService.getStatus(transferID);
+                const info = await statusService.getStatus(transferID, destination);
                 await TransferRepository.updateByID(transferID, { status: info.status });
 
                 return {
@@ -43,14 +44,18 @@ export class DropboxMethods {
     static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
         const userID: string = call.request.userID;
         const fileID: string = call.request.fileID;
-        const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID });
+        const destination: Destination = call.request.destination;
+
+        const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID, destination });
 
         return { hasTransfer };
     }
 
     static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<IApproverInfo> {
         const id: string = call.request.id;
-        const approverInfo: IApproverInfo = await approvalService.getApproverInfo(id);
+        const destination: Destination = call.request.destination;
+
+        const approverInfo: IApproverInfo = await approvalService.getApproverInfo(id, destination);
 
         return approverInfo;
     }
@@ -58,7 +63,9 @@ export class DropboxMethods {
     static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
         const userID: string = call.request.userID;
         const approverID: string = call.request.approverID;
-        const canApprove: ICanApproveToUser = await approvalService.canApproveToUser(approverID, userID);
+        const destination: Destination = call.request.destination;
+
+        const canApprove: ICanApproveToUser = await approvalService.canApproveToUser(approverID, userID, destination);
 
         return canApprove;
     }
@@ -66,6 +73,7 @@ export class DropboxMethods {
     static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
         const params = call.request;
         const approvers = call.request.approvers;
+        
         approvers.push(call.request.sharerID);
 
         const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination });
@@ -80,6 +88,7 @@ export class DropboxMethods {
             from: params.sharerID,
             info: params.info,
             classification: params.classification,
+            destination: params.destination
         });
 
 

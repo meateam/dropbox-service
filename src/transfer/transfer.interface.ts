@@ -9,4 +9,5 @@ export interface ITransfer {
 
 export enum Destination {
     z = "Z",
+    c = "C"
 }

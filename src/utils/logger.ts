@@ -29,3 +29,8 @@ export const log = (level: Severity, message: string, name: string, traceID?: st
 export const logger: winston.Logger = winston.createLogger({
     defaultMeta: { service: config.serviceName, hostname: os.hostname() },
 });
+
+if (config.server.debugMode === 'dev') {
+    const consoleLogger = new winston.transports.Console();
+    logger.add(consoleLogger);
+  }

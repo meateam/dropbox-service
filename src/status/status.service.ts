@@ -3,13 +3,15 @@ import { IStatus } from './status.interface';
 import { ApprovalError, NotFoundError, ApplicationError } from '../utils/errors/errors';
 import { config } from '../config';
 import { getToken } from "../spike/spike.service";
+import { Destination } from '../transfer/transfer.interface';
 
 export class StatusService {
 
     private instance: AxiosInstance;
 
     constructor() {
-        this.instance = Axios.create({ baseURL: config.status.statusUrl });
+        // TODO: check if there is multiple status endpoind?
+        this.instance = Axios.create({ baseURL: config.status.statusUrl }); 
         this.addAuthIntreceptor();
     }
 
@@ -17,7 +19,7 @@ export class StatusService {
      * Gets the status of a transfer by its id.
      * @param id - the request ID
      */
-    async getStatus(id: string): Promise<IStatus> {
+    async getStatus(id: string, destination: Destination): Promise<IStatus> {
         try {
             const res: AxiosResponse = await this.instance.get(`/api/v1/users/${id}/approverInfo`);
             const info: IStatus = res.data;
@@ -26,7 +28,6 @@ export class StatusService {
 
         } catch (err) {
 
-            // TODO
             if (err.response && err.response.status) {
                 const status: number = err.response.status;
                 if (status === 404) {

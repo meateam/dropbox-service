@@ -1,16 +1,15 @@
+import { Destination } from "./transfer/transfer.interface"
+
 export const config = {
     serviceName: 'dropbox-service',
     server: {
         bindAddress: process.env.BIND_ADDRESS || '0.0.0.0:8080',
+        debugMode: process.env.NODE_ENV || 'prod'
     },
     spike: {
         audiance: process.env.AUDIANCE || 'dropbox',
         grantType: process.env.GRANT_TYPE || 'clien_credientials',
         spikeUrl: process.env.SPIKE_SERVICE_URL || 'spike-service:8080',
-    },
-    approval: {
-        approvalUrl: process.env.APPROVAL_URL || 'http://localhost',
-        defaultDestination: process.env.DEFAULT_DESTINATION || 'Z'
     },
     status: {
         statusUrl: process.env.STATUS_URL || 'http://localhost',
@@ -25,4 +24,9 @@ export const config = {
         connectionRetries: process.env.RECONNECT_ATTEMPTS || '5',
         reconnectTimeout: process.env.RECONNECT_TIMEOUT || '2000',
     }
+}
+
+export const dests = {
+    [Destination.z]: {approvalUrl: process.env.APPROVAL_URL_Z || 'http://localhost'},
+    [Destination.c]: {approvalUrl: process.env.APPROVAL_URL_C || 'http://localhost'}
 }

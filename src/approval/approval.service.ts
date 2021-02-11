@@ -1,22 +1,23 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { IApproverInfo, ICanApproveToUser, IRequest } from './approvers.interface';
 import { ApprovalError, NotFoundError, ApplicationError } from '../utils/errors/errors';
-import { config } from '../config';
+import { config, dests } from '../config';
 import { getToken } from "../spike/spike.service";
 import { TransferRepository } from '../transfer/transfer.repository';
+import { Destination } from '../transfer/transfer.interface';
 
 export class ApprovalService {
 
     private instance: AxiosInstance;
 
     constructor() {
-        this.instance = Axios.create({ baseURL: config.approval.approvalUrl });
+        this.instance = Axios.create();
         this.addAuthIntreceptor();
     }
 
     async createRequest(data: IRequest) {
         try {
-            const res: AxiosResponse = await this.instance.post(`/api/v1/request`, data);
+            const res: AxiosResponse = await this.instance.post(`${dests[data.destination].approvalUrl}/api/v1/request`, data);
             return res.data;
         } catch (err) {
             await TransferRepository.deleteByID(data.id || "");
@@ -37,9 +38,9 @@ export class ApprovalService {
      * Gets a user approver information from the approval service
      * @param id - the user ID
      */
-    async getApproverInfo(id: string): Promise<IApproverInfo> {
+    async getApproverInfo(id: string, destination: Destination): Promise<IApproverInfo> {
         try {
-            const res: AxiosResponse = await this.instance.get(`/api/v1/users/${id}/approverInfo`);
+            const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`);
             const data = res.data;
 
             const info: IApproverInfo = {
@@ -72,9 +73,9 @@ export class ApprovalService {
      * @param approverID is the chosen approver id
      * @param userID is the user that's waiting to be approved
      */
-    async canApproveToUser(approverID: string, userID: string): Promise<ICanApproveToUser> {
+    async canApproveToUser(approverID: string, userID: string, destination: Destination): Promise<ICanApproveToUser> {
         try {
-            const res: AxiosResponse = await this.instance.get(`/api/v1/users/${approverID}/canApproveToUser/${userID}`);
+            const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${approverID}/canApproveToUser/${userID}`);
             const info: ICanApproveToUser = res.data;
 
             return info;
