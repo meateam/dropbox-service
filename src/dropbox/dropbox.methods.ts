@@ -14,9 +14,8 @@ export class DropboxMethods {
     static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<ITransferInfo[]> {
         const fileID = call.request.fileID;
         const userID = call.request.userID;
-        const destination = call.request.destination;
 
-        const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID, destination });
+        const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
         if (!transfers.length) throw new NotFoundError();
 
         const transfersInfo: Promise<ITransferInfo[]> = Promise.all(
@@ -25,7 +24,7 @@ export class DropboxMethods {
 
                 if (!transferID) throw new NotFoundError();
 
-                const info = await statusService.getStatus(transferID, destination);
+                const info = await statusService.getStatus(transferID);
                 await TransferRepository.updateByID(transferID, { status: info.status });
 
                 return {

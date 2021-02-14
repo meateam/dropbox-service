@@ -19,7 +19,7 @@ export class StatusService {
      * Gets the status of a transfer by its id.
      * @param id - the request ID
      */
-    async getStatus(id: string, destination: Destination): Promise<IStatus> {
+    async getStatus(id: string): Promise<IStatus> {
         try {
             const res: AxiosResponse = await this.instance.get(`/api/v1/users/${id}/approverInfo`);
             const info: IStatus = res.data;

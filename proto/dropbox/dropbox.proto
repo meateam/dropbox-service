@@ -64,7 +64,6 @@ message HasTransferResponse {
 message GetTransfersInfoRequest {
   string fileID = 1;
   string userID = 2; // The source user who create the request
-  string destination = 3;
 }
 
 message GetTransfersInfoResponse {
