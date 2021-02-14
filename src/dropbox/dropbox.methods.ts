@@ -6,6 +6,9 @@ import { IApproverInfo, ICanApproveToUser } from "../approval/approvers.interfac
 import { TransferError, NotFoundError } from '../utils/errors/errors';
 import { Destination, ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
+import { IStatus } from '../status/status.interface';
+import { IUser } from '../user/user.interface';
+import { getUser } from '../user/user.service';
 
 const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
@@ -24,16 +27,18 @@ export class DropboxMethods {
 
                 if (!transferID) throw new NotFoundError();
 
-                const info = await statusService.getStatus(transferID);
-                await TransferRepository.updateByID(transferID, { status: info.status });
+                const statusRes: IStatus = await statusService.getStatus(transferID);
+                await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
+                const destUsers: IUser[] = await Promise.all(statusRes.direction.to.map(async destUser => await getUser(destUser)));
+                
                 return {
                     fileID: transfer.fileID,
                     from: transfer.userID,
                     createdAt: transfer.createdAt,
                     destination: transfer.destination,
-                    to: info.users,
-                    status: info.status || transfer.status || "???",
+                    to: destUsers,
+                    status: statusRes.status || transfer.status || "???",
                 }
             }));
 

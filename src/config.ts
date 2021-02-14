@@ -11,6 +11,7 @@ export const config = {
         grantType: process.env.GRANT_TYPE || 'clien_credientials',
         spikeUrl: process.env.SPIKE_SERVICE_URL || 'spike-service:8080',
     },
+    userUrl: process.env.USERS_RPC_ENDPOINT || 'user-service:8080',
     status: {
         statusUrl: process.env.STATUS_URL || 'http://localhost',
     },

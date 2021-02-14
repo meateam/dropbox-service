@@ -12,6 +12,7 @@ services:
       - mongo
       - elasticsearch
       - spike-service
+      - user-service
   
   spike-service:
     image: drivehub.azurecr.io/meateam/spike-service:v2.0.0
@@ -20,6 +21,16 @@ services:
     env_file:
       - ../kdrive.env
     depends_on:
+      - redis
+
+  user-service:
+    image: drivehub.azurecr.io/meateam/user-service:develop
+    ports:
+      - "8082:8080"
+    env_file:
+      - ../kdrive.env
+    depends_on:
+      - mongo
       - redis
 
   redis:

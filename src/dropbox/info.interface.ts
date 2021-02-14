@@ -1,5 +1,5 @@
 import { Destination } from "../transfer/transfer.interface";
-import { IUser } from "../utils/user.interface";
+import { IUser } from "../user/user.interface";
 
 export interface ITransferInfo {
     fileID: string;

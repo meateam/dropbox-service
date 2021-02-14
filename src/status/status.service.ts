@@ -3,7 +3,6 @@ import { IStatus } from './status.interface';
 import { ApprovalError, NotFoundError, ApplicationError } from '../utils/errors/errors';
 import { config } from '../config';
 import { getToken } from "../spike/spike.service";
-import { Destination } from '../transfer/transfer.interface';
 
 export class StatusService {
 
@@ -21,7 +20,7 @@ export class StatusService {
      */
     async getStatus(id: string): Promise<IStatus> {
         try {
-            const res: AxiosResponse = await this.instance.get(`/api/v1/users/${id}/approverInfo`);
+            const res: AxiosResponse = await this.instance.get(`/api/status/${id}`);
             const info: IStatus = res.data;
 
             return info;

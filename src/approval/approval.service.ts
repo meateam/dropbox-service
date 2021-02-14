@@ -1,4 +1,5 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
+import { get } from 'lodash';
 import { IApproverInfo, ICanApproveToUser, IRequest } from './approvers.interface';
 import { ApprovalError, NotFoundError, ApplicationError } from '../utils/errors/errors';
 import { config, dests } from '../config';
@@ -21,6 +22,7 @@ export class ApprovalService {
             return res.data;
         } catch (err) {
             await TransferRepository.deleteByID(data.id || "");
+            
             if (!err.response || !err.response.status) throw new ApplicationError();
 
             const status: number = err.response.status;
@@ -28,6 +30,8 @@ export class ApprovalService {
                 throw new NotFoundError(`The user is not found`);
             } else if (status === 502) {
                 throw new ApprovalError(`Error was thrown by the approval service : ${err.message}`);
+            } else if (status === 400){
+                throw new ApprovalError(`Bad request to approval service : ${err.message}`);
             }
             throw new ApprovalError(`Error in contacting the approval service : ${err.message}`);
         }
@@ -41,6 +45,7 @@ export class ApprovalService {
     async getApproverInfo(id: string, destination: Destination): Promise<IApproverInfo> {
         try {
             const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`);
+            console.log(res);
             const data = res.data;
 
             const info: IApproverInfo = {
@@ -54,14 +59,8 @@ export class ApprovalService {
             return info;
 
         } catch (err) {
-            if (err.response && err.response.status) {
-                const status: number = err.response.status;
-                if (status === 404) {
-                    throw new NotFoundError(`The user with id ${id} is not found`);
-                } else if (status === 502) {
-                    throw new ApprovalError(`Error was thrown by the approval service : ${err.message}`);
-                }
-                throw new ApprovalError(`Error in contacting the approval service : ${err.message}`);
+            if(get(err, 'response.data.message')) {
+                throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);
             } else {
                 throw new ApplicationError(`Unknown Error while contacting the approval service : ${err.message}`);
             }
@@ -81,7 +80,9 @@ export class ApprovalService {
             return info;
 
         } catch (err) {
-            if (err.response && err.response.status) {
+            if(get(err, 'response.data.message')) {
+                throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);
+            } else if (get(err, 'response.status')) {
                 const status: number = err.response.status;
                 if (status === 404) {
                     throw new NotFoundError('One of the users were not found');
