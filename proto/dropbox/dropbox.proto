@@ -55,7 +55,6 @@ message CreateRequestResponse {}
 message HasTransferRequest {
   string fileID = 1;
   string userID = 2;
-  string destination = 3;
 }
 
 message HasTransferResponse { 

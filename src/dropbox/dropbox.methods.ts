@@ -44,9 +44,8 @@ export class DropboxMethods {
     static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
         const userID: string = call.request.userID;
         const fileID: string = call.request.fileID;
-        const destination: Destination = call.request.destination;
 
-        const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID, destination });
+        const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID });
 
         return { hasTransfer };
     }
