@@ -135,13 +135,13 @@ enum status {
 }
 
 export function validateGrpcError(err: Error | ApplicationError): ApplicationError {
-    const errCode = 'code' in err ? err.code : status.UNKNOWN;
-    return new ApplicationError(err.message, errCode);
+  const errCode = 'code' in err ? err.code : status.UNKNOWN;
+  return new ApplicationError(err.message, errCode);
 }
 
 export function statusToString(code: number): string {
-    if (!(Number.isInteger(code) && code >= 0 && code <= 16)) {
-        return status[status.UNKNOWN];
-    }
-    return status[code];
+  if (!(Number.isInteger(code) && code >= 0 && code <= 16)) {
+    return status[status.UNKNOWN];
+  }
+  return status[code];
 }
