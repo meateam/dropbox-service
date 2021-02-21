@@ -2,7 +2,7 @@ import * as grpc from 'grpc';
 import { ApprovalService } from '../approval/approval.service';
 import { StatusService } from '../status/status.service';
 import { TransferRepository } from '../transfer/transfer.repository';
-import { IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
+import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
 import { TransferError, NotFoundError, ClientError } from '../utils/errors/errors';
 import { Destination, ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
@@ -30,9 +30,10 @@ export class DropboxMethods {
               const statusRes: IStatus = await statusService.getStatus(transferID);
               await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
-              const destUsers: IUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
+              const destUsers: IApprovalUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
                 const user: IUser = await getUser(destUser);
-                return user;
+                const userApproval: IApprovalUser = { id: user.id, name:user.fullName };
+                return userApproval;
               }));
 
               return {

@@ -1,5 +1,3 @@
-import { IUser } from '../user/user.interface';
-
 export interface IApproverInfo {
   userId: string;
   isAdmin: boolean;
@@ -13,11 +11,15 @@ export interface ICanApproveToUser {
   cantApproveReasons?: string[];
 }
 
+export interface IApprovalUser {
+  id: string;
+  name: string;
+}
 export interface IRequest {
   id?: string;
   from: string;
   approvers: string[];
-  to: IUser[];
+  to: IApprovalUser[];
   fileId: string;
   fileName: string;
   info: string;

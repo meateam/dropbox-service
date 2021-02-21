@@ -8,6 +8,6 @@ export interface ITransfer {
 }
 
 export enum Destination {
-    DROPBOX = 'DROPBOX',
-    CARGO = 'CARGO'
+    z = 'z',
+    c = 'c'
 }

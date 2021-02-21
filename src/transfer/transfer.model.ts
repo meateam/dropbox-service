@@ -17,7 +17,7 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
   },
   destination: {
     type: Destination,
-    default: dests.DROPBOX,
+    default: dests.z,
     required: false,
   },
   status: {
