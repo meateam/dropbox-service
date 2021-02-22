@@ -66,11 +66,15 @@ message GetTransfersInfoRequest {
   string userID = 2; // The source user who create the request
 }
 
-message GetTransfersInfoResponse {
+message TransferInfoResponse {
   string fileID = 1;
   string from = 2;
   string destination = 3;
   string status = 4;
   int64 createdAt = 5;
   repeated User to = 6;
+}
+
+message GetTransfersInfoResponse {
+  repeated TransferInfoResponse transferInfo = 1; 
 }

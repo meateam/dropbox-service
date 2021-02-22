@@ -21,31 +21,30 @@ export class DropboxMethods {
     const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
     if (!transfers.length) throw new NotFoundError();
 
-    const transfersInfo: Promise<ITransferInfo[]> = Promise.all(
-            transfers.map(async (transfer: ITransfer) => {
-              const transferID = transfer._id;
+    const transfersInfo: ITransferInfo[] = await Promise.all(transfers.map(async (transfer: ITransfer) => {
+      const transferID = transfer._id;
+      if (!transferID) throw new NotFoundError();
+      
+      const statusRes: IStatus = await statusService.getStatus(transferID);
+      await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
-              if (!transferID) throw new NotFoundError();
+      const destUsers: IApprovalUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
+        const user: IUser = await getUser(destUser, transfer.destination);
+        const userApproval: IApprovalUser = { id: user.id, name:user.fullName };
+        return userApproval;
+      }));
 
-              const statusRes: IStatus = await statusService.getStatus(transferID);
-              await TransferRepository.updateByID(transferID, { status: statusRes.status });
+      return {
+        fileID: transfer.fileID,
+        from: transfer.userID,
+        createdAt: transfer.createdAt,
+        destination: transfer.destination,
+        to: destUsers,
+        status: statusRes.status || transfer.status || '???',
+      };
+    }));
 
-              const destUsers: IApprovalUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
-                const user: IUser = await getUser(destUser);
-                const userApproval: IApprovalUser = { id: user.id, name:user.fullName };
-                return userApproval;
-              }));
-
-              return {
-                fileID: transfer.fileID,
-                from: transfer.userID,
-                createdAt: transfer.createdAt,
-                destination: transfer.destination,
-                to: destUsers,
-                status: statusRes.status || transfer.status || '???',
-              };
-            }));
-
+    console.log('transfersInfo', transfersInfo);
     return transfersInfo;
   }
 

@@ -9,9 +9,8 @@ const client = new GrpcClient('./proto/users/users.proto', { serverUrl: config.u
 
 export async function getUser(id: string, destination?: Destination): Promise<IUser> {
   try {
-    const user = await client.GetUserByID({ id, destination });
-    console.log(user);
-    return user;
+    const res = await client.GetUserByID({ id, destination });
+    return res.user;
   } catch (err) {
     throw new UserServiceError(err);
   }
