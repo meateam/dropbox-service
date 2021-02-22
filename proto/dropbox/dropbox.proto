@@ -76,5 +76,5 @@ message TransferInfoResponse {
 }
 
 message GetTransfersInfoResponse {
-  repeated TransferInfoResponse transferInfo = 1; 
+  repeated TransferInfoResponse transfersInfo = 1; 
 }

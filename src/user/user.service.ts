@@ -12,6 +12,6 @@ export async function getUser(id: string, destination?: Destination): Promise<IU
     const res = await client.GetUserByID({ id, destination });
     return res.user;
   } catch (err) {
-    throw new UserServiceError(err);
+    throw new UserServiceError(`Error in contacting the user service : ${JSON.stringify(err)}`);
   }
 }

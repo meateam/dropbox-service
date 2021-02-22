@@ -14,7 +14,7 @@ const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<ITransferInfo[]> {
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{transfersInfo: ITransferInfo[]}> {
     const fileID = call.request.fileID;
     const userID = call.request.userID;
 
@@ -24,13 +24,13 @@ export class DropboxMethods {
     const transfersInfo: ITransferInfo[] = await Promise.all(transfers.map(async (transfer: ITransfer) => {
       const transferID = transfer._id;
       if (!transferID) throw new NotFoundError();
-      
+
       const statusRes: IStatus = await statusService.getStatus(transferID);
       await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
       const destUsers: IApprovalUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
         const user: IUser = await getUser(destUser, transfer.destination);
-        const userApproval: IApprovalUser = { id: user.id, name:user.fullName };
+        const userApproval: IApprovalUser = { id: user.id, name: user.fullName };
         return userApproval;
       }));
 
@@ -44,8 +44,7 @@ export class DropboxMethods {
       };
     }));
 
-    console.log('transfersInfo', transfersInfo);
-    return transfersInfo;
+    return { transfersInfo };
   }
 
   static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
