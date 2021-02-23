@@ -86,7 +86,7 @@ export class DropboxMethods {
     return canApprove;
   }
 
-  static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
+  static async CreateRequest(call: grpc.ServerUnaryCall<any>): Promise<ITransfer> {
     const params = call.request;
     const approvers = call.request.approvers;
 
@@ -104,7 +104,7 @@ export class DropboxMethods {
 
     approvers.push(call.request.sharerID);
 
-    const transfer = await TransferRepository.create({
+    const transfer: ITransfer = await TransferRepository.create({
       userID: params.sharerID,
       fileID: params.fileID,
       createdAt: new Date(),
@@ -124,6 +124,6 @@ export class DropboxMethods {
     };
     await approvalService.createRequest(request, params.destination);
 
-    return {};
+    return transfer;
   }
 }

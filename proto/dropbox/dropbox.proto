@@ -60,7 +60,12 @@ message User {
   string hierarchyFlat = 7;
 }
 
-message CreateRequestResponse {}
+message CreateRequestResponse {
+  string userID = 1;
+  string fileID = 2;
+  string createdAt = 3;
+  string destination = 4;
+}
 
 message HasTransferRequest {
   string fileID = 1;
@@ -73,7 +78,7 @@ message HasTransferResponse {
 
 message GetTransfersInfoRequest {
   string fileID = 1;
-  string userID = 2; // The source user who create the request
+  string userID = 2; // The source user who created the request
 }
 
 message TransferInfoResponse {
