@@ -1,6 +1,6 @@
 import * as winston from 'winston';
 import * as os from 'os';
-import * as Elasticsearch from 'winston-elasticsearch';
+import * as elasticsearch from 'winston-elasticsearch';
 import { config, confLogger } from '../config';
 
 // index pattern for the logger
@@ -16,16 +16,16 @@ if (config.server.debugMode === 'dev') {
   logger.add(consoleLogger);
 }
 
-// const elasticsearch = new Elasticsearch.default({
-//   indexPrefix: confLogger.indexPrefix,
-//   level: 'verbose',
-//   clientOpts: confLogger.options,
-//   bufferLimit: 100,
-//   messageType: 'log',
-//   ensureMappingTemplate: true,
-//   mappingTemplate: indexTemplateMapping,
-// });
-// logger.add(elasticsearch);
+const es = new elasticsearch.default({
+  indexPrefix: confLogger.indexPrefix,
+  level: 'verbose',
+  clientOpts: confLogger.options,
+  bufferLimit: 100,
+  messageType: 'log',
+  ensureMappingTemplate: true,
+  mappingTemplate: indexTemplateMapping,
+});
+logger.add(es);
 
 export const log = (level: Severity, message: string, name: string, traceID?: string, meta?: object) => {
   logger.log(level, message, { ...meta, traceID, method: name });
