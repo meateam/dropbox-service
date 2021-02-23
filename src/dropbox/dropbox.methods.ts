@@ -1,12 +1,12 @@
 import * as grpc from 'grpc';
-import { ApprovalService } from '../approval/approval.service';
-import { StatusService } from '../status/status.service';
-import { TransferRepository } from '../transfer/transfer.repository';
-import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
 import { TransferError, NotFoundError, ClientError } from '../utils/errors/errors';
+import { ApprovalService } from '../approval/approval.service';
+import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
+import { StatusService } from '../status/status.service';
+import { IStatus } from '../status/status.interface';
+import { TransferRepository } from '../transfer/transfer.repository';
 import { Destination, ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
-import { IStatus } from '../status/status.interface';
 import { IUser } from '../user/user.interface';
 import { getUser } from '../user/user.service';
 
@@ -14,10 +14,11 @@ const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{transfersInfo: ITransferInfo[]}> {
-    const fileID = call.request.fileID;
-    const userID = call.request.userID;
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
+    const fileID: string = call.request.fileID;
+    const userID: string = call.request.userID;
 
+    // Get all transfers that match to fileID and userID
     const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
     if (!transfers.length) throw new NotFoundError();
 
@@ -25,16 +26,24 @@ export class DropboxMethods {
       const transferID = transfer._id;
       if (!transferID) throw new NotFoundError();
 
+      // Check transfer status at status-service and update the status in mongo
       const statusRes: IStatus = await statusService.getStatus(transferID);
       await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
-      const destUsers: IApprovalUser[] = await Promise.all(statusRes.direction.to.map(async (destUser) => {
-        const user: IUser = await getUser(destUser, transfer.destination);
-        const userApproval: IApprovalUser = { id: user.id, name: user.fullName };
-        return userApproval;
+      // Get destination users
+      const destUsers: IUser[] = [];
+      const failed: string[] = [];
+      await Promise.all(statusRes.direction.to.map(async (destUser) => {
+        try {
+          const user: IUser = await getUser(destUser, transfer.destination);
+          destUsers.push(user);
+        } catch (error) {
+          failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
+        }
       }));
 
       return {
+        failed,
         fileID: transfer.fileID,
         from: transfer.userID,
         createdAt: transfer.createdAt,
@@ -60,12 +69,9 @@ export class DropboxMethods {
     const id: string = call.request.id;
     const destination: Destination = call.request.destination;
 
-    if (!(destination in Destination)) {
-      throw new ClientError('destination value is not supported');
-    }
+    if (!(destination in Destination)) throw new ClientError(`destination value: ${destination}, is not supported`);
 
     const approverInfo: IApproverInfo = await approvalService.getApproverInfo(id, destination);
-
     return approverInfo;
   }
 
@@ -74,12 +80,9 @@ export class DropboxMethods {
     const approverID: string = call.request.approverID;
     const destination: Destination = call.request.destination;
 
-    if (!(destination in Destination)) {
-      throw new ClientError('destination value is not supported');
-    }
+    if (!(destination in Destination)) throw new ClientError(`destination value: ${destination}, is not supported`);
 
     const canApprove: ICanApproveToUser = await approvalService.canApproveToUser(approverID, userID, destination);
-
     return canApprove;
   }
 
@@ -87,13 +90,26 @@ export class DropboxMethods {
     const params = call.request;
     const approvers = call.request.approvers;
 
-    if (!(params.destination in Destination)) {
-      throw new ClientError('destination value is not supported');
-    }
+    if (!(params.destination in Destination)) throw new ClientError(`destination value: ${params.destination}, is not supported`);
+
+    // Check if the users is valid
+    if (params.users.length < 1) throw new ClientError('must require at least 1 dest user');
+    await Promise.all(params.users.map(async (user: IApprovalUser) => {
+      try {
+        await getUser(user.id, params.destination);
+      } catch (error) {
+        throw new ClientError(`cant get user: ${user.id} with destination: ${params.destination}`);
+      }
+    }));
 
     approvers.push(call.request.sharerID);
 
-    const transfer = await TransferRepository.create({ userID: params.sharerID, fileID: params.fileID, createdAt: new Date(), destination: params.destination });
+    const transfer = await TransferRepository.create({
+      userID: params.sharerID,
+      fileID: params.fileID,
+      createdAt: new Date(),
+      destination: params.destination,
+    });
     if (!transfer) throw new TransferError();
 
     const request: IRequest = {
@@ -106,7 +122,6 @@ export class DropboxMethods {
       info: params.info,
       classification: params.classification,
     };
-
     await approvalService.createRequest(request, params.destination);
 
     return {};

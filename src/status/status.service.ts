@@ -1,9 +1,9 @@
 import Axios, { AxiosResponse, AxiosInstance } from 'axios';
 import { get } from 'lodash';
-import { IStatus } from './status.interface';
 import { StatusServiceError, NotFoundError, ApplicationError } from '../utils/errors/errors';
 import { config } from '../config';
 import { getToken } from '../spike/spike.service';
+import { IStatus } from './status.interface';
 
 export class StatusService {
 
@@ -11,18 +11,18 @@ export class StatusService {
 
   constructor() {
     this.instance = Axios.create({ baseURL: config.status.statusUrl });
+    this.addAuthIntreceptor();
   }
 
-    /**
-     * Gets the status of a transfer by its id.
-     * @param id - the request ID
-     */
+  /**
+   * Gets the status of a transfer by its id.
+   * @param id - the request ID
+   */
   async getStatus(id: string): Promise<IStatus> {
     try {
-      await this.addAuthIntreceptor();
       const res: AxiosResponse = await this.instance.get(`/api/status/${id}`);
-      const info: IStatus = res.data;
 
+      const info: IStatus = res.data;
       return info;
 
     } catch (err) {
@@ -34,9 +34,8 @@ export class StatusService {
           throw new StatusServiceError(`Error was thrown by the status service : ${JSON.stringify(err)}`);
         }
         throw new StatusServiceError(`Error in contacting the status service : ${JSON.stringify(err)}`);
-      } else {
-        throw new ApplicationError(`Unknown Error while contacting the status service : ${err}`);
       }
+      throw new ApplicationError(`Unknown Error while contacting the status service : ${err}`);
     }
   }
 

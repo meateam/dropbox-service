@@ -13,17 +13,23 @@ export class ApprovalService {
 
   constructor() {
     this.instance = Axios.create();
+    this.addAuthIntreceptor();
   }
 
+  /**
+   * Create new transfer request in the approval service
+   * @param data - reuqest data
+   * @param destination - approval destination system
+   */
   async createRequest(data: IRequest, destination: Destination) {
     try {
-      await this.addAuthIntreceptor();
+      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
       const res: AxiosResponse = await this.instance.post(`${dests[destination].approvalUrl}/api/v1/request`, data);
+
       return res.data;
     } catch (err) {
+      // Remove failed transfer from mongo
       await TransferRepository.deleteByID(data.id || '');
-
-      if (!err.response || !err.response.status) throw new ApplicationError();
 
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);
@@ -34,16 +40,17 @@ export class ApprovalService {
 
   }
 
-    /**
-     * Gets a user approver information from the approval service
-     * @param id - the user ID
-     */
+  /**
+   * Gets a user approver information from the approval service
+   * @param id - the user ID
+   * @param destination - approval destination system
+   */
   async getApproverInfo(id: string, destination: Destination): Promise<IApproverInfo> {
     try {
-      await this.addAuthIntreceptor();
+      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
       const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`);
-      const data = res.data;
 
+      const data = res.data;
       const info: IApproverInfo = {
         isAdmin: data.isAdmin,
         isBlocked: data.isBlocked,
@@ -63,17 +70,18 @@ export class ApprovalService {
     }
   }
 
-    /**
-     * canApproveToUser checks if the user assigned a good approver and returns the data of the user.
-     * @param approverID is the chosen approver id
-     * @param userID is the user that's waiting to be approved
-     */
+  /**
+   * canApproveToUser checks if the user assigned a good approver and returns the data of the user.
+   * @param approverID is the chosen approver id
+   * @param userID is the user that's waiting to be approved
+   * @param destination - approval destination system
+   */
   async canApproveToUser(approverID: string, userID: string, destination: Destination): Promise<ICanApproveToUser> {
     try {
-      await this.addAuthIntreceptor();
+      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
       const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${approverID}/canApproveToUser/${userID}`);
-      const info: ICanApproveToUser = res.data;
 
+      const info: ICanApproveToUser = res.data;
       return info;
 
     } catch (err) {

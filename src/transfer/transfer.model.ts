@@ -17,7 +17,7 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
   },
   destination: {
     type: Destination,
-    default: dests.z,
+    default: dests.TOMCAL,
     required: false,
   },
   status: {

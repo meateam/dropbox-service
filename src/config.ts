@@ -41,6 +41,6 @@ export const confLogger = {
 };
 
 export const dests = {
-  [Destination.z]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_Z || 'http://localhost' },
-  [Destination.c]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_C || 'http://localhost' }
+  [Destination.TOMCAL]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_TOMCAL || 'http://localhost' },
+  [Destination.CTS]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_CTS || 'http://localhost' }
 };

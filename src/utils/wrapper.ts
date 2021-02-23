@@ -2,8 +2,8 @@ import * as grpc from 'grpc';
 import * as apm from 'elastic-apm-node';
 import * as _ from 'lodash';
 import { Severity, log } from './logger';
-import { statusToString, validateGrpcError } from './errors/grpc.status';
 import { ApplicationError } from './errors/errors';
+import { statusToString, validateGrpcError } from './errors/grpc.status';
 
 /**
  * extracts the wanted information for the logger from the response.

@@ -8,6 +8,6 @@ export interface ITransfer {
 }
 
 export enum Destination {
-    z = 'z',
-    c = 'c'
+    TOMCAL = 'TOMCAL',
+    CTS = 'CTS'
 }

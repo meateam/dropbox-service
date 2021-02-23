@@ -37,7 +37,7 @@ message CanApproveToUserResponse {
 message CreateRequestRequest {
   string fileID = 1;
   string sharerID = 2;
-  repeated User users = 3;
+  repeated ApprovalUser users = 3;
   string classification = 4;
   string info = 5;
   repeated string approvers = 6;
@@ -45,9 +45,19 @@ message CreateRequestRequest {
   string destination = 8;
 }
 
-message User {
+message ApprovalUser {
   string id = 1;
   string name = 2;
+}
+
+message User {
+  string id = 1;
+  string mail = 2;
+  string firstName = 3;
+  string lastName = 4;
+  string fullName = 5;
+  repeated string hierarchy = 6;
+  string hierarchyFlat = 7;
 }
 
 message CreateRequestResponse {}
@@ -67,12 +77,13 @@ message GetTransfersInfoRequest {
 }
 
 message TransferInfoResponse {
-  string fileID = 1;
-  string from = 2;
-  string destination = 3;
-  string status = 4;
-  int64 createdAt = 5;
+  string  fileID = 1;
+  string  from = 2;
+  string  destination = 3;
+  string  status = 4;
+  int64   createdAt = 5;
   repeated User to = 6;
+  repeated string failed = 7;
 }
 
 message GetTransfersInfoResponse {
