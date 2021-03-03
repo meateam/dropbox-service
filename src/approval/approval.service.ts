@@ -8,12 +8,10 @@ import { TransferRepository } from '../transfer/transfer.repository';
 import { Destination } from '../transfer/transfer.interface';
 
 export class ApprovalService {
-
   private instance: AxiosInstance;
 
   constructor() {
     this.instance = Axios.create();
-    this.addAuthIntreceptor();
   }
 
   /**
@@ -23,7 +21,10 @@ export class ApprovalService {
    */
   async createRequest(data: IRequest, destination: Destination) {
     try {
-      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
+      await this.addAuthIntreceptor();
+      if (!dests[destination].approvalUrl) {
+        throw new NotFoundError(`approval url not found for destination: ${destination}`);
+      }
       const res: AxiosResponse = await this.instance.post(`${dests[destination].approvalUrl}/api/v1/request`, data);
 
       return res.data;
@@ -37,7 +38,6 @@ export class ApprovalService {
         throw new ApplicationError(`Unknown Error while contacting the approval service : ${err.message}`);
       }
     }
-
   }
 
   /**
@@ -45,10 +45,16 @@ export class ApprovalService {
    * @param id - the user ID
    * @param destination - approval destination system
    */
-  async getApproverInfo(id: string, destination: Destination): Promise<IApproverInfo> {
+  async getApproverInfo(id: string, destination: string): Promise<IApproverInfo> {
     try {
-      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
-      const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`);
+      await this.addAuthIntreceptor();
+
+      if (!dests[destination].approvalUrl) {
+        throw new NotFoundError(`approval url not found for destination: ${destination}`);
+      }
+      const res: AxiosResponse = await this.instance.get(
+        `${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`
+      );
 
       const data = res.data;
       const info: IApproverInfo = {
@@ -60,7 +66,6 @@ export class ApprovalService {
       };
 
       return info;
-
     } catch (err) {
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);
@@ -76,14 +81,19 @@ export class ApprovalService {
    * @param userID is the user that's waiting to be approved
    * @param destination - approval destination system
    */
-  async canApproveToUser(approverID: string, userID: string, destination: Destination): Promise<ICanApproveToUser> {
+  async canApproveToUser(approverID: string, userID: string, destination: string): Promise<ICanApproveToUser> {
     try {
-      if (!dests[destination].approvalUrl) throw new NotFoundError(`approval url not found for destination: ${destination}`);
-      const res: AxiosResponse = await this.instance.get(`${dests[destination].approvalUrl}/api/v1/users/${approverID}/canApproveToUser/${userID}`);
+      await this.addAuthIntreceptor();
+
+      if (!dests[destination].approvalUrl) {
+        throw new NotFoundError(`approval url not found for destination: ${destination}`);
+      }
+      const res: AxiosResponse = await this.instance.get(
+        `${dests[destination].approvalUrl}/api/v1/users/${approverID}/canApproveToUser/${userID}`
+      );
 
       const info: ICanApproveToUser = res.data;
       return info;
-
     } catch (err) {
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);

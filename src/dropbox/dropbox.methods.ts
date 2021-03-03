@@ -67,7 +67,7 @@ export class DropboxMethods {
 
   static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<IApproverInfo> {
     const id: string = call.request.id;
-    const destination: Destination = call.request.destination;
+    const destination: string = call.request.destination;
 
     if (!(destination in Destination)) throw new ClientError(`destination value: ${destination}, is not supported`);
 
@@ -78,7 +78,7 @@ export class DropboxMethods {
   static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
     const userID: string = call.request.userID;
     const approverID: string = call.request.approverID;
-    const destination: Destination = call.request.destination;
+    const destination: string = call.request.destination;
 
     if (!(destination in Destination)) throw new ClientError(`destination value: ${destination}, is not supported`);
 

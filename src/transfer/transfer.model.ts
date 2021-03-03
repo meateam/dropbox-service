@@ -1,5 +1,4 @@
 import * as mongoose from 'mongoose';
-import { dests } from '../config';
 import { Destination, ITransfer } from './transfer.interface';
 
 const transferScheme: mongoose.Schema = new mongoose.Schema({
@@ -17,7 +16,7 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
   },
   destination: {
     type: Destination,
-    default: dests.TOMCAL,
+    default: Destination.TOMCAL,
     required: false,
   },
   status: {

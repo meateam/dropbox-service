@@ -1,17 +1,15 @@
-import Axios, { AxiosResponse, AxiosInstance } from 'axios';
-import { get } from 'lodash';
-import { StatusServiceError, NotFoundError, ApplicationError } from '../utils/errors/errors';
-import { config } from '../config';
-import { getToken } from '../spike/spike.service';
-import { IStatus } from './status.interface';
+import Axios, { AxiosResponse, AxiosInstance } from "axios";
+import { get } from "lodash";
+import { StatusServiceError, NotFoundError, ApplicationError } from "../utils/errors/errors";
+import { config } from "../config";
+import { getToken } from "../spike/spike.service";
+import { IStatus } from "./status.interface";
 
 export class StatusService {
-
   private instance: AxiosInstance;
 
   constructor() {
     this.instance = Axios.create({ baseURL: config.status.statusUrl });
-    this.addAuthIntreceptor();
   }
 
   /**
@@ -20,13 +18,14 @@ export class StatusService {
    */
   async getStatus(id: string): Promise<IStatus> {
     try {
+      await this.addAuthIntreceptor();
+
       const res: AxiosResponse = await this.instance.get(`/api/status/${id}`);
 
       const info: IStatus = res.data;
       return info;
-
     } catch (err) {
-      if (get(err, 'response.status')) {
+      if (get(err, "response.status")) {
         const status: number = err.response.status;
         if (status === 404) {
           throw new NotFoundError(`The status ${id} is not found`);
@@ -41,6 +40,6 @@ export class StatusService {
 
   private async addAuthIntreceptor() {
     const token = await getToken(config.spike.audience, config.spike.grantType);
-    this.instance.defaults.headers.common['Authorization'] = token;
+    this.instance.defaults.headers.common["Authorization"] = token;
   }
 }

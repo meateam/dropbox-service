@@ -4,7 +4,7 @@ export const config = {
   serviceName: 'dropbox-service',
   server: {
     bindAddress: process.env.BIND_ADDRESS || '0.0.0.0:8080',
-    debugMode: process.env.NODE_ENV || 'dev'
+    debugMode: process.env.NODE_ENV || 'dev',
   },
   spike: {
     audience: process.env.DROPBOX_AUDIENCE || '_LCF5avgIpoXSWhY5Jl8mMi0Q~4_~R',
@@ -18,7 +18,7 @@ export const config = {
   apm: {
     secretToken: process.env.APM_SECRET_TOKEN || '',
     verifyServerCert: process.env.ELASTIC_APM_VERIFY_SERVER_CERT === 'true',
-    apmURL: process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200'
+    apmURL: process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200',
   },
   mongo: {
     connectionString: process.env.MONGO_HOST || 'mongodb://mongo:27017/kdrive',
@@ -27,6 +27,9 @@ export const config = {
   },
 };
 
+export const tomcalDest: string = process.env.GW_TOMCAL_DEST_VALUE || 'TOMCAL';
+export const ctsDest: string = process.env.GW_CTS_DEST_VALUE || 'CTS';
+
 const esHost: string = process.env.ELASTICSEARCH_URL || 'http://localhost:9200';
 const esUser: string = process.env.ELASTICSEARCH_USER || '';
 const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
@@ -34,13 +37,13 @@ const esPass: string = process.env.ELASTICSEARCH_PASSWORD || '';
 export const confLogger = {
   options: {
     hosts: esHost && esHost.split(','),
-      // Might be auth instead, not sure.
+    // Might be auth instead, not sure.
     httpAuth: `${esUser}:${esPass}`,
   },
   indexPrefix: process.env.LOG_INDEX || 'kdrive',
 };
 
 export const dests = {
-  [Destination.TOMCAL]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_TOMCAL || 'http://localhost' },
-  [Destination.CTS]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_CTS || 'http://localhost' }
+  [tomcalDest]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_TOMCAL || 'http://localhost' },
+  [ctsDest]: { approvalUrl: process.env.DROPBOX_APPROVAL_URL_CTS || 'http://localhost' },
 };

@@ -1,3 +1,5 @@
+import { ctsDest,  tomcalDest } from '../config';
+
 export interface ITransfer {
   _id?: string;
   status?: string;
@@ -8,6 +10,6 @@ export interface ITransfer {
 }
 
 export enum Destination {
-    TOMCAL = 'TOMCAL',
-    CTS = 'CTS'
+  TOMCAL = tomcalDest as any,
+  CTS = ctsDest as any,
 }
