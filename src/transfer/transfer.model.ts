@@ -10,6 +10,14 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  sharerID: {
+    type: String,
+    required: true,
+  },
+  reqID: {
+    type: String,
+    required: true,
+  },
   createdAt: {
     type: Date,
     required: true,
@@ -22,7 +30,7 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
   status: {
     type: String,
     required: false,
-  }
+  },
 });
 
 export const transferModel = mongoose.model<ITransfer & mongoose.Document>('Transfer', transferScheme);

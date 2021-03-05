@@ -1,10 +1,12 @@
-import { ctsDest,  tomcalDest } from '../config';
+import { ctsDest, tomcalDest } from '../config';
 
 export interface ITransfer {
   _id?: string;
   status?: string;
   fileID: string;
   userID: string;
+  sharerID: string;
+  reqID: string;
   createdAt: Date;
   destination: Destination;
 }

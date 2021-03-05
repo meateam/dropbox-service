@@ -45,6 +45,8 @@ message CreateRequestRequest {
   string destination = 8;
 }
 
+message CreateRequestResponse {}
+
 message ApprovalUser {
   string id = 1;
   string name = 2;
@@ -60,13 +62,6 @@ message User {
   string hierarchyFlat = 7;
 }
 
-message CreateRequestResponse {
-  string userID = 1;
-  string fileID = 2;
-  string createdAt = 3;
-  string destination = 4;
-}
-
 message HasTransferRequest {
   string fileID = 1;
   string userID = 2;
@@ -78,7 +73,7 @@ message HasTransferResponse {
 
 message GetTransfersInfoRequest {
   string fileID = 1;
-  string userID = 2; // The source user who created the request
+  string userID = 2; // The dest user who get the transfer
 }
 
 message TransferInfoResponse {

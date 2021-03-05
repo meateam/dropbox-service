@@ -1,4 +1,5 @@
 import * as grpc from 'grpc';
+import { ObjectID } from 'bson';
 import { TransferError, NotFoundError, ClientError } from '../utils/errors/errors';
 import { ApprovalService } from '../approval/approval.service';
 import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
@@ -16,42 +17,47 @@ const statusService: StatusService = new StatusService();
 export class DropboxMethods {
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const fileID: string = call.request.fileID;
-    const userID: string = call.request.userID;
+    const sharerID: string = call.request.userID;
 
     // Get all transfers that match to fileID and userID
-    const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, userID });
+    const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, sharerID });
     if (!transfers.length) throw new NotFoundError();
 
-    const transfersInfo: ITransferInfo[] = await Promise.all(transfers.map(async (transfer: ITransfer) => {
-      const transferID = transfer._id;
-      if (!transferID) throw new NotFoundError();
+    const transfersInfo: ITransferInfo[] = await Promise.all(
+      transfers.map(async (transfer: ITransfer) => {
+        const requestID = transfer.reqID;
+        const transferID = transfer._id;
+        if (!requestID || !transferID) throw new NotFoundError();
 
-      // Check transfer status at status-service and update the status in mongo
-      const statusRes: IStatus = await statusService.getStatus(transferID);
-      await TransferRepository.updateByID(transferID, { status: statusRes.status });
+        // Check transfer status at status-service and update the status in mongo
+        const statusRes: IStatus = await statusService.getStatus(requestID);
+        await TransferRepository.updateByID(transferID, { status: statusRes.status });
 
-      // Get destination users
-      const destUsers: IUser[] = [];
-      const failed: string[] = [];
-      await Promise.all(statusRes.direction.to.map(async (destUser) => {
-        try {
-          const user: IUser = await getUser(destUser, transfer.destination);
-          destUsers.push(user);
-        } catch (error) {
-          failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
-        }
-      }));
+        // Get destination users
+        const destUsers: IUser[] = [];
+        const failed: string[] = [];
+        await Promise.all(
+          statusRes.direction.to.map(async (destUser) => {
+            try {
+              const user: IUser = await getUser(destUser, transfer.destination);
+              destUsers.push(user);
+            } catch (error) {
+              failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
+            }
+          })
+        );
 
-      return {
-        failed,
-        fileID: transfer.fileID,
-        from: transfer.userID,
-        createdAt: transfer.createdAt,
-        destination: transfer.destination,
-        to: destUsers,
-        status: statusRes.status || transfer.status || '???',
-      };
-    }));
+        return {
+          failed,
+          fileID: transfer.fileID,
+          from: transfer.sharerID,
+          createdAt: transfer.createdAt,
+          destination: transfer.destination,
+          to: destUsers,
+          status: statusRes.status || transfer.status || '???',
+        };
+      })
+    );
 
     return { transfersInfo };
   }
@@ -86,35 +92,49 @@ export class DropboxMethods {
     return canApprove;
   }
 
-  static async CreateRequest(call: grpc.ServerUnaryCall<any>): Promise<ITransfer> {
+  static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
     const params = call.request;
-    const approvers = call.request.approvers;
+    const approvers = params.approvers;
+    const destUsers = params.users;
+    const sharerID = params.sharerID;
+    const destination = params.destination;
 
-    if (!(params.destination in Destination)) throw new ClientError(`destination value: ${params.destination}, is not supported`);
+    if (!(destination in Destination)) {
+      throw new ClientError(`destination value: ${destination}, is not supported`);
+    }
 
     // Check if the users is valid
-    if (params.users.length < 1) throw new ClientError('must require at least 1 dest user');
-    await Promise.all(params.users.map(async (user: IApprovalUser) => {
-      try {
-        await getUser(user.id, params.destination);
-      } catch (error) {
-        throw new ClientError(`cant get user: ${user.id} with destination: ${params.destination}`);
-      }
-    }));
+    if (destUsers.length < 1) throw new ClientError('must require at least 1 dest user');
+    await Promise.all(
+      destUsers.map(async (destUser: IApprovalUser) => {
+        try {
+          await getUser(destUser.id, destination);
+        } catch (error) {
+          throw new ClientError(`cant get user: ${destUser.id} with destination: ${destination}`);
+        }
+      })
+    );
 
-    approvers.push(call.request.sharerID);
+    approvers.push(sharerID);
+    const reqID = new ObjectID().toString();
 
-    const transfer: ITransfer = await TransferRepository.create({
-      userID: params.sharerID,
-      fileID: params.fileID,
-      createdAt: new Date(),
-      destination: params.destination,
-    });
-    if (!transfer) throw new TransferError();
+    await Promise.all(
+      destUsers.map(async (destUser: IApprovalUser) => {
+        const transfer: ITransfer = await TransferRepository.create({
+          reqID,
+          destination,
+          sharerID,
+          userID: destUser.id,
+          fileID: params.fileID,
+          createdAt: new Date(),
+        });
+        if (!transfer) throw new TransferError();
+      })
+    );
 
     const request: IRequest = {
       approvers,
-      id: transfer._id,
+      id: reqID,
       fileId: params.fileID,
       fileName: params.fileName,
       to: params.users,
@@ -122,8 +142,8 @@ export class DropboxMethods {
       info: params.info,
       classification: params.classification,
     };
-    await approvalService.createRequest(request, params.destination);
+    await approvalService.createRequest(request, destination);
 
-    return transfer;
+    return {};
   }
 }
