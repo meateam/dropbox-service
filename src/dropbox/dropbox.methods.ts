@@ -21,9 +21,9 @@ export class DropboxMethods {
 
     // Get all transfers that match to fileID and userID
     const partialFilter: Partial<ITransfer> = {};
-    sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
-    fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
-
+    sharerID && sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
+    fileID && fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
+    
     const transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
     if (!transfers.length) return { transfersInfo: [] };
 

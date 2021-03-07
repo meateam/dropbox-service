@@ -3,7 +3,10 @@ export interface IApproverInfo {
   isAdmin: boolean;
   isApprover: boolean;
   isBlocked: boolean;
-  unitName: string;
+  unit: {
+    name: string;
+    approvers: string[];
+  };
 }
 
 export interface ICanApproveToUser {

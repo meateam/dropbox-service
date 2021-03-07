@@ -61,7 +61,7 @@ export class ApprovalService {
         isAdmin: data.isAdmin,
         isBlocked: data.isBlocked,
         userId: data.userId,
-        unitName: data.unit.name,
+        unit: data.unit,
         isApprover: data.isApprover,
       };
 

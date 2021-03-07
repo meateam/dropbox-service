@@ -1,4 +1,3 @@
-import { IApprovalUser } from '../approval/approvers.interface';
 import { Destination } from '../transfer/transfer.interface';
 import { IUser } from '../user/user.interface';
 

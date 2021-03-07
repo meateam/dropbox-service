@@ -10,6 +10,26 @@ service Dropbox {
   rpc GetTransfersInfo(GetTransfersInfoRequest) returns(GetTransfersInfoResponse) {}
 }
 
+message Unit {
+  string name =1;
+  repeated string approvers = 2;
+}
+
+message ApprovalUser {
+  string id = 1;
+  string name = 2;
+}
+
+message User {
+  string id = 1;
+  string mail = 2;
+  string firstName = 3;
+  string lastName = 4;
+  string fullName = 5;
+  repeated string hierarchy = 6;
+  string hierarchyFlat = 7;
+}
+
 message GetApproverInfoRequest { 
   string id = 1; 
   string destination = 2;
@@ -20,7 +40,7 @@ message GetApproverInfoResponse {
   bool isAdmin = 2;
   bool isApprover = 3;
   bool isBlocked = 4;
-  string unitName = 5;
+  Unit unit = 5;
 }
 
 message CanApproveToUserRequest {
@@ -47,20 +67,6 @@ message CreateRequestRequest {
 
 message CreateRequestResponse {}
 
-message ApprovalUser {
-  string id = 1;
-  string name = 2;
-}
-
-message User {
-  string id = 1;
-  string mail = 2;
-  string firstName = 3;
-  string lastName = 4;
-  string fullName = 5;
-  repeated string hierarchy = 6;
-  string hierarchyFlat = 7;
-}
 
 message HasTransferRequest {
   string fileID = 1;
