@@ -1,5 +1,3 @@
-import { Destination } from './transfer/transfer.interface';
-
 export const config = {
   serviceName: 'dropbox-service',
   server: {
@@ -21,7 +19,7 @@ export const config = {
     apmURL: process.env.ELASTIC_APM_SERVER_URL || 'http://localhost:8200',
   },
   mongo: {
-    connectionString: process.env.MONGO_HOST || 'mongodb://mongo:27017/kdrive',
+    connectionString: process.env.MONGO_HOST || 'mongodb://mongo:27017/devDB',
     connectionRetries: process.env.RECONNECT_ATTEMPTS || '5',
     reconnectTimeout: process.env.RECONNECT_TIMEOUT || '2000',
   },

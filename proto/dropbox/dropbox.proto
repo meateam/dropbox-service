@@ -73,7 +73,7 @@ message HasTransferResponse {
 
 message GetTransfersInfoRequest {
   string fileID = 1;
-  string userID = 2; // The dest user who get the transfer
+  string sharerID = 2;
 }
 
 message TransferInfoResponse {

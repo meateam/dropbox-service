@@ -17,11 +17,15 @@ const statusService: StatusService = new StatusService();
 export class DropboxMethods {
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const fileID: string = call.request.fileID;
-    const sharerID: string = call.request.userID;
+    const sharerID: string = call.request.sharerID;
 
     // Get all transfers that match to fileID and userID
-    const transfers: ITransfer[] = await TransferRepository.getMany({ fileID, sharerID });
-    if (!transfers.length) throw new NotFoundError();
+    const partialFilter: Partial<ITransfer> = {};
+    sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
+    fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
+
+    const transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
+    if (!transfers.length) return { transfersInfo: [] };
 
     const transfersInfo: ITransferInfo[] = await Promise.all(
       transfers.map(async (transfer: ITransfer) => {
