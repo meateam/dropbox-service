@@ -21,9 +21,20 @@ export class StatusService {
       await this.addAuthIntreceptor();
 
       const res: AxiosResponse = await this.instance.get(`/api/status/${id}`);
+  
+      const data = res.data;
+      
+      // Get displayName
+      const displayName = data.history.filter((historyItem: any) => historyItem.status.name == data.status)[0].status.displayName || 'unknown';
+      
+      const info: IStatus = {
+        id: data.id,
+        status: {displayName, status: data.status},
+        direction: data.direction,
 
-      const info: IStatus = res.data;
+      };
       return info;
+
     } catch (err) {
       if (get(err, "response.status")) {
         const status: number = err.response.status;

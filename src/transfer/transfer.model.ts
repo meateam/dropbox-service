@@ -28,8 +28,14 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     required: false,
   },
   status: {
-    type: String,
-    required: false,
+    status: {
+      type: String,
+      required: false,
+    },
+    displayName: {
+      type: String,
+      required: false,
+    }
   },
 });
 

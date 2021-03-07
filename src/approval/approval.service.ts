@@ -56,16 +56,9 @@ export class ApprovalService {
         `${dests[destination].approvalUrl}/api/v1/users/${id}/approverInfo`
       );
 
-      const data = res.data;
-      const info: IApproverInfo = {
-        isAdmin: data.isAdmin,
-        isBlocked: data.isBlocked,
-        userId: data.userId,
-        unit: data.unit,
-        isApprover: data.isApprover,
-      };
-
+      const info: IApproverInfo = res.data;
       return info;
+      
     } catch (err) {
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);

@@ -1,3 +1,4 @@
+import { Status } from '../status/status.interface';
 import { Destination } from '../transfer/transfer.interface';
 import { IUser } from '../user/user.interface';
 
@@ -7,6 +8,6 @@ export interface ITransferInfo {
   createdAt: Date;
   destination: Destination;
   to: IUser[];
-  status: string;
+  status: Status;
   failed: string[];
 }
