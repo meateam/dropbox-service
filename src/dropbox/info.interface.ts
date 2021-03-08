@@ -5,6 +5,8 @@ import { IUser } from '../user/user.interface';
 export interface ITransferInfo {
   id: string;
   fileID: string;
+  fileOwnerID: string;
+  fileName: string;
   from: string;
   createdAt: Date | number;
   destination: Destination;

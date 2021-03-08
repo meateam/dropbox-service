@@ -18,12 +18,12 @@ export class DropboxMethods {
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const fileID: string = call.request.fileID;
     const sharerID: string = call.request.sharerID;
-
+ 
     // Get all transfers that match to fileID and userID
     const partialFilter: Partial<ITransfer> = {};
-    sharerID && sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
-    fileID && fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
-    
+    sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
+    fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
+
     const transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
     if (!transfers.length) return { transfersInfo: [] };
 
@@ -54,10 +54,12 @@ export class DropboxMethods {
           failed,
           id: transfer._id || '',
           fileID: transfer.fileID,
+          fileName: transfer.fileName,
+          fileOwnerID: transfer.fileOwnerID,
+          classification: transfer.classification,
           from: transfer.sharerID,
           createdAt: transfer.createdAt.getTime(),
           destination: transfer.destination,
-          classification: statusRes.classification || '???',
           to: destUsers,
           status: statusRes.status || '???',
         };
@@ -71,7 +73,7 @@ export class DropboxMethods {
     const userID: string = call.request.userID;
     const fileID: string = call.request.fileID;
 
-    const hasTransfer: boolean = await TransferRepository.exists({ userID, fileID });
+    const hasTransfer: boolean = await TransferRepository.exists({fileID, userID});
 
     return { hasTransfer };
   }
@@ -129,8 +131,11 @@ export class DropboxMethods {
           reqID,
           destination,
           sharerID,
-          userID: destUser.id,
           fileID: params.fileID,
+          fileName: params.fileName,
+          fileOwnerID: params.ownerID,
+          classification: params.classification,
+          userID: destUser.id,
           createdAt: new Date(),
         });
         if (!transfer) throw new TransferError();

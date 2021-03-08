@@ -69,6 +69,7 @@ message CreateRequestRequest {
   repeated string approvers = 6;
   string fileName = 7;
   string destination = 8;
+  string ownerID = 9;
 }
 
 message CreateRequestResponse {}
@@ -98,6 +99,8 @@ message TransferInfoResponse {
   repeated string failed = 7;
   string id = 8;
   string classification = 9;
+  string fileName = 10;
+  string fileOwnerID = 11;
 }
 
 message GetTransfersInfoResponse {

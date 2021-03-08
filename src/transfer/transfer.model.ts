@@ -6,6 +6,18 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  fileOwnerID: {
+    type: String,
+    required: true,
+  },
+  classification: {
+    type: String,
+    required: true,
+  },
+  fileName: {
+    type: String,
+    required: true,
+  },
   userID: {
     type: String,
     required: true,

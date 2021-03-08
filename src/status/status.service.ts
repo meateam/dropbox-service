@@ -30,7 +30,6 @@ export class StatusService {
         id: data.id,
         status: historyData,
         direction: data.direction,
-        classification: data.approverlContext.classification
       };
 
       return info;
