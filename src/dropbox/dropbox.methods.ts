@@ -35,7 +35,6 @@ export class DropboxMethods {
 
         // Check transfer status at status-service and update the status in mongo
         const statusRes: IStatus = await statusService.getStatus(requestID);
-        await TransferRepository.updateByID(transferID, { status: { status:statusRes.status.status, displayName: statusRes.status.displayName } });
 
         // Get destination users
         const destUsers: IUser[] = [];
@@ -53,12 +52,13 @@ export class DropboxMethods {
 
         return {
           failed,
+          id: transfer._id || '',
           fileID: transfer.fileID,
           from: transfer.sharerID,
-          createdAt: transfer.createdAt,
+          createdAt: transfer.createdAt.getTime(),
           destination: transfer.destination,
           to: destUsers,
-          status: statusRes.status || transfer.status || '???',
+          status: statusRes.status || '???',
         };
       })
     );

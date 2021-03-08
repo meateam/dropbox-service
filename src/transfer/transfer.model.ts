@@ -27,16 +27,6 @@ const transferScheme: mongoose.Schema = new mongoose.Schema({
     default: Destination.TOMCAL,
     required: false,
   },
-  status: {
-    status: {
-      type: String,
-      required: false,
-    },
-    displayName: {
-      type: String,
-      required: false,
-    }
-  },
 });
 
 export const transferModel = mongoose.model<ITransfer & mongoose.Document>('Transfer', transferScheme);

@@ -3,7 +3,6 @@ import { Status } from '../status/status.interface';
 
 export interface ITransfer {
   _id?: string;
-  status?: Status;
   fileID: string;
   userID: string;
   sharerID: string;

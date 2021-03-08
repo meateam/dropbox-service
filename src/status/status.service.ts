@@ -3,7 +3,7 @@ import { get } from "lodash";
 import { StatusServiceError, NotFoundError, ApplicationError } from "../utils/errors/errors";
 import { config } from "../config";
 import { getToken } from "../spike/spike.service";
-import { IStatus } from "./status.interface";
+import { IStatus, Status } from "./status.interface";
 
 export class StatusService {
   private instance: AxiosInstance;
@@ -24,12 +24,11 @@ export class StatusService {
   
       const data = res.data;
       
-      // Get displayName
-      const displayName = data.history.filter((historyItem: any) => historyItem.status.name == data.status)[0].status.displayName || 'unknown';
-      
+      const historyData: Status[] = res.data.history.map((historyItem: any) => historyItem.status as Status);
+
       const info: IStatus = {
         id: data.id,
-        status: {displayName, status: data.status},
+        status: historyData,
         direction: data.direction,
 
       };

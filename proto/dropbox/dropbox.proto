@@ -21,8 +21,9 @@ message ApprovalUser {
 }
 
 message Status {
-  string status = 1;
+  string name = 1;
   string displayName = 2;
+  string type = 3;
 }
 
 message User {
@@ -91,10 +92,11 @@ message TransferInfoResponse {
   string  fileID = 1;
   string  from = 2;
   string  destination = 3;
-  Status  status = 4;
+  repeated Status  status = 4;
   int64   createdAt = 5;
   repeated User to = 6;
   repeated string failed = 7;
+  string id = 8;
 }
 
 message GetTransfersInfoResponse {

@@ -4,11 +4,13 @@ export type DirectionType = {
 };
 
 export type Status = {
-  status: string,
+  type: string,
+  name: string,
   displayName: string,
 };
+
 export interface IStatus {
   id: string;
-  status: Status;
+  status: Status[];
   direction: DirectionType;
 }
