@@ -57,6 +57,7 @@ export class DropboxMethods {
           from: transfer.sharerID,
           createdAt: transfer.createdAt.getTime(),
           destination: transfer.destination,
+          classification: statusRes.classification || '???',
           to: destUsers,
           status: statusRes.status || '???',
         };

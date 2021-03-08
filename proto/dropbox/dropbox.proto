@@ -97,6 +97,7 @@ message TransferInfoResponse {
   repeated User to = 6;
   repeated string failed = 7;
   string id = 8;
+  string classification = 9;
 }
 
 message GetTransfersInfoResponse {

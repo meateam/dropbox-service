@@ -12,5 +12,6 @@ export type Status = {
 export interface IStatus {
   id: string;
   status: Status[];
+  classification: string;
   direction: DirectionType;
 }

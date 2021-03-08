@@ -9,6 +9,7 @@ export interface ITransferInfo {
   createdAt: Date | number;
   destination: Destination;
   to: IUser[];
+  classification: string;
   status: Status[];
   failed: string[];
 }
