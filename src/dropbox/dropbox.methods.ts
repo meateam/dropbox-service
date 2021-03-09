@@ -24,7 +24,11 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
+    let transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
+    transfers = transfers.filter(
+      (transfer, index, self) => index === self.findIndex((anotherTransfer) => anotherTransfer.reqID === transfer.reqID)
+    );
+
     if (!transfers.length) return { transfersInfo: [] };
 
     const transfersInfo: ITransferInfo[] = await Promise.all(
