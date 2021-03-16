@@ -4,7 +4,7 @@ import { TransferError, NotFoundError, ClientError } from '../utils/errors/error
 import { ApprovalService } from '../approval/approval.service';
 import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
 import { StatusService } from '../status/status.service';
-import { IStatus } from '../status/status.interface';
+import { IStatus, Status } from '../status/status.interface';
 import { TransferRepository } from '../transfer/transfer.repository';
 import { Destination, ITransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
@@ -18,7 +18,7 @@ export class DropboxMethods {
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const fileID: string = call.request.fileID;
     const sharerID: string = call.request.sharerID;
- 
+
     // Get all transfers that match to fileID and userID
     const partialFilter: Partial<ITransfer> = {};
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
@@ -26,7 +26,7 @@ export class DropboxMethods {
 
     let transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
     transfers = transfers.filter(
-      (transfer, index, self) => index === self.findIndex((anotherTransfer) => anotherTransfer.reqID === transfer.reqID)
+      (transfer, index, self) => index === self.findIndex(anotherTransfer => anotherTransfer.reqID === transfer.reqID)
     );
 
     if (!transfers.length) return { transfersInfo: [] };
@@ -37,13 +37,17 @@ export class DropboxMethods {
         const transferID = transfer._id;
         if (!requestID || !transferID) throw new NotFoundError();
 
+        const failed: string[] = [];
+        const destUsers: IUser[] = [];
+        const statusTransfer: Status[] = [];
+
         // Check transfer status at status-service and update the status in mongo
-        const statusRes: IStatus = await statusService.getStatus(requestID);
+        try {
+          const statusRes: IStatus = await statusService.getStatus(requestID);
+          statusTransfer.push(...statusRes.status);
 
         // Get destination users
-        const destUsers: IUser[] = [];
-        const failed: string[] = [];
-        await Promise.all(
+          await Promise.all(
           statusRes.direction.to.map(async (destUser) => {
             try {
               const user: IUser = await getUser(destUser, transfer.destination);
@@ -53,6 +57,9 @@ export class DropboxMethods {
             }
           })
         );
+        }  catch (error) {
+          failed.push(`cant get status, err: ${error}`);
+        }
 
         return {
           failed,
@@ -65,7 +72,7 @@ export class DropboxMethods {
           createdAt: transfer.createdAt.getTime(),
           destination: transfer.destination,
           to: destUsers,
-          status: statusRes.status || '???',
+          status: statusTransfer || '???',
         };
       })
     );
@@ -77,7 +84,7 @@ export class DropboxMethods {
     const userID: string = call.request.userID;
     const fileID: string = call.request.fileID;
 
-    const hasTransfer: boolean = await TransferRepository.exists({fileID, userID});
+    const hasTransfer: boolean = await TransferRepository.exists({ fileID, userID });
 
     return { hasTransfer };
   }
