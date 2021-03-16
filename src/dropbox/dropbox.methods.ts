@@ -24,10 +24,20 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
+    console.log(partialFilter);
+    console.log('reqId');
     let transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
+    console.log('transfers1:,');
+    console.log(transfers);
+    let transfers2: ITransfer[] = await TransferRepository.getMany(partialFilter, 'reqID');
+    console.log('transfers22222:,');
+    console.log(transfers2);
     transfers = transfers.filter(
       (transfer, index, self) => index === self.findIndex(anotherTransfer => anotherTransfer.reqID === transfer.reqID)
     );
+
+    console.log('transfers1 after filter:,');
+    console.log(transfers);
 
     if (!transfers.length) return { transfersInfo: [] };
 

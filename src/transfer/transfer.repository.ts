@@ -9,8 +9,25 @@ export class TransferRepository {
     return transfer;
   }
 
-  static async getMany(filter: Partial<ITransfer>): Promise<ITransfer[]> {
-    const transfers: ITransfer[] = await transferModel.find(filter).exec();
+  static async getMany(filter: Partial<ITransfer>, distinctField?: string): Promise<ITransfer[]> {
+    let transfers: ITransfer[];
+    if(distinctField){
+      transfers = await transferModel.aggregate([{
+        $group: {
+            _id: '$reqID',
+            "docs": {
+                $first: {
+                    "fileID": "$fileID",
+                    "fileName": "$fileName",
+                    "fileOwnerID": "$fileOwnerID"
+                }
+            }
+        }
+    }])
+      // transfers = await transferModel.find(filter).distinct(distinctField, {}).exec();
+    } else {
+      transfers= await transferModel.find(filter).exec();
+    }
     return transfers;
   }
 
