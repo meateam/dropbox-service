@@ -1,5 +1,5 @@
 import { ServerError } from '../utils/errors/errors';
-import { ITransfer } from './transfer.interface';
+import { IPaginatedTransfer, ITransfer } from './transfer.interface';
 import { transferModel } from './transfer.model';
 
 export class TransferRepository {
@@ -9,25 +9,37 @@ export class TransferRepository {
     return transfer;
   }
 
-  static async getMany(filter: Partial<ITransfer>, distinctField?: string): Promise<ITransfer[]> {
-    let transfers: ITransfer[];
-    if(distinctField){
-      transfers = await transferModel.aggregate([{
+  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<IPaginatedTransfer[]> {
+    const startingIndex : number = pageNum * pageSize;
+    const aggregationQuery : any[]= [
+      { 
+        $match: filter
+      },
+      { 
         $group: {
-            _id: '$reqID',
-            "docs": {
-                $first: {
-                    "fileID": "$fileID",
-                    "fileName": "$fileName",
-                    "fileOwnerID": "$fileOwnerID"
-                }
+          _id: '$reqID',
+          docs:{
+            $first: {
+                "_id": "$_id",
+                "reqID": "$reqID",
+                "fileID": "$fileID",
+                "fileName": "$fileName",
+                "classification": "$classification",
+                "fileOwnerID": "$fileOwnerID",
+                "status": "$status",
+                "userID": "$userID",
+                "sharerID": "$sharerID",
+                "createdAt": "$createdAt",
+                "destination": "$destination"
+              }
             }
-        }
-    }])
-      // transfers = await transferModel.find(filter).distinct(distinctField, {}).exec();
-    } else {
-      transfers= await transferModel.find(filter).exec();
+          }
+      },
+    { $sort: { _id: -1 }}];
+    if(pageSize > 0) {
+      aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize })
     }
+    const transfers: IPaginatedTransfer[] = await transferModel.aggregate(aggregationQuery);
     return transfers;
   }
 
