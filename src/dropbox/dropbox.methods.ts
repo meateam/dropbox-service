@@ -17,13 +17,13 @@ const statusService: StatusService = new StatusService();
 export class DropboxMethods {
   /**
    * GetTransfersInfo returns an object containing transfers array, 
-   * unique by rwqID and filtered by fileID and sharerID.
+   * unique by reqID and filtered by fileID and sharerID.
    * If pageSize > 0 then a paginated result is returned.
    * @param call.request.fileID     - the fileID of the requested transfers.
    * @param call.request.sharerID   - the sharerID of the requested transfers.
    * @param call.request.pageNum    - the index of paginated page in the requested transfers.
    * @param call.request.pageSize   - the size of the page.
-   * @returns ITransferInfo[]
+   * @returns { ITransferInfo[] }   - an object of transfer infos array
    */
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const pageNum: number = +call.request.pageNum || 0;
@@ -62,18 +62,18 @@ export class DropboxMethods {
           const statusRes: IStatus = await statusService.getStatus(requestID);
           statusTransfer.push(...statusRes.status);
 
-        // Get destination users
+          // Get destination users
           await Promise.all(
-          statusRes.direction.to.map(async (destUser) => {
-            try {
-              const user: IUser = await getUser(destUser, transfer.destination);
-              destUsers.push(user);
-            } catch (error) {
-              failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
-            }
-          })
-        );
-        }  catch (error) {
+            statusRes.direction.to.map(async (destUser) => {
+              try {
+                const user: IUser = await getUser(destUser, transfer.destination);
+                destUsers.push(user);
+              } catch (error) {
+                failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
+              }
+            })
+          );
+        } catch (error) {
           failed.push(`cant get status, err: ${error}`);
         }
 
@@ -96,6 +96,12 @@ export class DropboxMethods {
     return { transfersInfo };
   }
 
+  /**
+   * Check if there is transfer exist by userID (dest user) and fileID
+   * @param fileID
+   * @param userID
+   * @returns boolean - has transfer or not
+   */
   static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
     const userID: string = call.request.userID;
     const fileID: string = call.request.fileID;
@@ -105,6 +111,12 @@ export class DropboxMethods {
     return { hasTransfer };
   }
 
+  /**
+   * Get approver info approver permissions for specific user
+   * @param id - userID
+   * @param destination - dest network
+   * @returns IApproverInfo
+   */
   static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<IApproverInfo> {
     const id: string = call.request.id;
     const destination: string = call.request.destination;
@@ -115,6 +127,13 @@ export class DropboxMethods {
     return approverInfo;
   }
 
+  /**
+   * Check if user has permissions to approve a transfer to another user
+   * @param userID - userID
+   * @param approverID
+   * @param destination - dest network
+   * @returns ICanApproveToUser
+   */
   static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
     const userID: string = call.request.userID;
     const approverID: string = call.request.approverID;
@@ -126,12 +145,15 @@ export class DropboxMethods {
     return canApprove;
   }
 
+  /**
+   * Create transfer request
+   */
   static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
     const params = call.request;
-    const approvers = params.approvers;
-    const destUsers = params.users;
-    const sharerID = params.sharerID;
-    const destination = params.destination;
+    const approvers: string[] = params.approvers;
+    const destUsers: IApprovalUser[] = params.users;
+    const sharerID: string = params.sharerID;
+    const destination: Destination = params.destination;
 
     if (!(destination in Destination)) {
       throw new ClientError(`destination value: ${destination}, is not supported`);

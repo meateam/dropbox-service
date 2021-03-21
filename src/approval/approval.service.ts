@@ -18,6 +18,7 @@ export class ApprovalService {
    * Create new transfer request in the approval service
    * @param data - reuqest data
    * @param destination - approval destination system
+   * @returns an empty object
    */
   async createRequest(data: IRequest, destination: Destination) {
     try {
@@ -58,7 +59,7 @@ export class ApprovalService {
 
       const info: IApproverInfo = res.data;
       return info;
-      
+
     } catch (err) {
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);

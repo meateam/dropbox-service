@@ -10,7 +10,7 @@ export type Status = {
 };
 
 export interface IStatus {
-  id: string;
+  id: string; // reqID
   status: Status[];
   direction: DirectionType;
 }
