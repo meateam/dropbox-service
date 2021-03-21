@@ -58,7 +58,7 @@ export class ApprovalService {
 
       const info: IApproverInfo = res.data;
       return info;
-      
+
     } catch (err) {
       if (get(err, 'response.data.message')) {
         throw new ApprovalError(`Error was thrown by the approval service : ${err.response.data.message}`);

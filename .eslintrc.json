@@ -1,0 +1,25 @@
+{
+    "extends": ["airbnb"],
+    "plugins": ["@typescript-eslint"],
+    "parser": "@typescript-eslint/parser",
+    "rules": {
+      "import/no-unresolved": 0,
+      "no-increment-decrement" : false,
+      "import-name": false,
+      "max-line-length": false, 
+      "function-name": false,
+      "variable-name": [true, "ban-keywords", "check-format", "allow-snake-case", "allow-leading-underscore", "allow-pascal-case"],
+      "trailing-comma" : false,
+      "ter-arrow-parens": false,
+      "react/jsx-filename-extension": {
+        "extensions": [".js", ".json", ".jsx", ".ts", ".tsx"]
+      }
+    },
+    "settings": {
+        "import/resolver": {
+          "webpack": {
+            "config": "webpack.config.js"
+          }
+        }
+      }
+  }
