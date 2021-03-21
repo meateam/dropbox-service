@@ -15,6 +15,15 @@ const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
+  /**
+   * Get transfer infos by -
+   * fileID - returns all transfers infos that related to the file id
+   * sharerID - returns all transfers infos that related to the sharer id
+   * fileID and sharerID - returns all transfers that done by sharerID for the fileID
+   * @param fileID
+   * @param sharerID
+   * @returns ITransferInfo[] - transfer infos array
+   */
   static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
     const fileID: string = call.request.fileID;
     const sharerID: string = call.request.sharerID;
@@ -26,7 +35,7 @@ export class DropboxMethods {
 
     let transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
     transfers = transfers.filter(
-      (transfer, index, self) => index === self.findIndex(anotherTransfer => anotherTransfer.reqID === transfer.reqID)
+      (transfer, index, self) => index === self.findIndex((anotherTransfer) => anotherTransfer.reqID === transfer.reqID)
     );
 
     if (!transfers.length) return { transfersInfo: [] };
@@ -46,18 +55,18 @@ export class DropboxMethods {
           const statusRes: IStatus = await statusService.getStatus(requestID);
           statusTransfer.push(...statusRes.status);
 
-        // Get destination users
+          // Get destination users
           await Promise.all(
-          statusRes.direction.to.map(async (destUser) => {
-            try {
-              const user: IUser = await getUser(destUser, transfer.destination);
-              destUsers.push(user);
-            } catch (error) {
-              failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
-            }
-          })
-        );
-        }  catch (error) {
+            statusRes.direction.to.map(async (destUser) => {
+              try {
+                const user: IUser = await getUser(destUser, transfer.destination);
+                destUsers.push(user);
+              } catch (error) {
+                failed.push(`cant get user ${destUser} for dest: ${transfer.destination}`);
+              }
+            })
+          );
+        } catch (error) {
           failed.push(`cant get status, err: ${error}`);
         }
 
@@ -80,6 +89,12 @@ export class DropboxMethods {
     return { transfersInfo };
   }
 
+  /**
+   * Check if there is transfer exist by userID (dest user) and fileID
+   * @param fileID
+   * @param userID
+   * @returns boolean - has transfer or not
+   */
   static async HasTransfer(call: grpc.ServerUnaryCall<any>): Promise<{ hasTransfer: boolean }> {
     const userID: string = call.request.userID;
     const fileID: string = call.request.fileID;
@@ -89,6 +104,12 @@ export class DropboxMethods {
     return { hasTransfer };
   }
 
+  /**
+   * Get approver info approver permissions for specific user
+   * @param id - userID
+   * @param destination - dest network
+   * @returns IApproverInfo
+   */
   static async GetApproverInfo(call: grpc.ServerUnaryCall<any>): Promise<IApproverInfo> {
     const id: string = call.request.id;
     const destination: string = call.request.destination;
@@ -99,6 +120,13 @@ export class DropboxMethods {
     return approverInfo;
   }
 
+  /**
+   * Check if user has permissions to approve a transfer to another user
+   * @param userID - userID
+   * @param approverID
+   * @param destination - dest network
+   * @returns ICanApproveToUser
+   */
   static async CanApproveToUser(call: grpc.ServerUnaryCall<any>): Promise<ICanApproveToUser> {
     const userID: string = call.request.userID;
     const approverID: string = call.request.approverID;
@@ -110,12 +138,15 @@ export class DropboxMethods {
     return canApprove;
   }
 
+  /**
+   * Create transfer request
+   */
   static async CreateRequest(call: grpc.ServerUnaryCall<any>) {
     const params = call.request;
-    const approvers = params.approvers;
-    const destUsers = params.users;
-    const sharerID = params.sharerID;
-    const destination = params.destination;
+    const approvers: string[] = params.approvers;
+    const destUsers: IApprovalUser[] = params.users;
+    const sharerID: string = params.sharerID;
+    const destination: Destination = params.destination;
 
     if (!(destination in Destination)) {
       throw new ClientError(`destination value: ${destination}, is not supported`);
