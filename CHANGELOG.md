@@ -10,4 +10,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- minor: ([](https://github.com/meateam/dropbox-service/pull/)): add js+ts proto compiling
+- minor: ([5](https://github.com/meateam/dropbox-service/pull/5)): add js+ts proto compiling
