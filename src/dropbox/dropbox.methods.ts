@@ -40,7 +40,7 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const paginatedTransfers: IPaginatedTransfer[] = await TransferRepository.getMany(partialFilter);
+    const paginatedTransfers: IPaginatedTransfer[] = await TransferRepository.getMany(partialFilter, pageNum, pageSize);
     let transfers : ITransfer[] = paginatedTransfers.map( pt => pt.docs);
 
     if (!transfers.length) return { transfersInfo: [] };
