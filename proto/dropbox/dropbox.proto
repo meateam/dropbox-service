@@ -39,8 +39,6 @@ message User {
 message GetApproverInfoRequest { 
   string id = 1; 
   string destination = 2;
-  int64 pageNum = 3;
-  int64 pageSize = 4;
 }
 
 message GetApproverInfoResponse { 
@@ -89,6 +87,8 @@ message HasTransferResponse {
 message GetTransfersInfoRequest {
   string fileID = 1;
   string sharerID = 2;
+  int64 pageNum = 3;
+  int64 pageSize = 4;
 }
 
 message TransferInfoResponse {
