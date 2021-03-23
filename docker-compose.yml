@@ -15,7 +15,7 @@ services:
       - user-service
   
   spike-service:
-    image: drivehub.azurecr.io/meateam/spike-service:v2.0.0
+    image: drivehub.azurecr.io/meateam/spike-service:develop
     ports:
       - "8081:8080"
     env_file:

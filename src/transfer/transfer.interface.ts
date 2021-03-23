@@ -19,3 +19,8 @@ export enum Destination {
   TOMCAL = tomcalDest as any,
   CTS = ctsDest as any,
 }
+
+export interface IPaginatedTransfer {
+  _id?: string;
+  docs: ITransfer
+}

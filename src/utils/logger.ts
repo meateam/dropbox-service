@@ -12,7 +12,7 @@ export const logger: winston.Logger = winston.createLogger({
   defaultMeta: { service: config.serviceName, hostname: os.hostname() }
 });
 
-if (config.server.debugMode === 'dev') {
+if (config.server.debugMode) {
   const consoleLogger = new winston.transports.Console();
   logger.add(consoleLogger);
 }

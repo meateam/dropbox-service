@@ -67,4 +67,8 @@ export class UserServiceError extends ApplicationError {
     super(message || 'Error contacting user service', grpc.status.UNAVAILABLE);
   }
 }
-
+export class ArgumentInvalidError extends ClientError {
+  constructor(message?: string) {
+    super(message || 'invalid argument', grpc.status.INVALID_ARGUMENT);
+  }
+}
