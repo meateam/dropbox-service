@@ -1,12 +1,12 @@
 import * as grpc from 'grpc';
 import { ObjectID } from 'bson';
-import { TransferError, NotFoundError, ClientError } from '../utils/errors/errors';
+import { TransferError, NotFoundError, ClientError, ArgumentInvalidError } from '../utils/errors/errors';
 import { ApprovalService } from '../approval/approval.service';
 import { IApprovalUser, IApproverInfo, ICanApproveToUser, IRequest } from '../approval/approvers.interface';
 import { StatusService } from '../status/status.service';
 import { IStatus, Status } from '../status/status.interface';
 import { TransferRepository } from '../transfer/transfer.repository';
-import { Destination, ITransfer } from '../transfer/transfer.interface';
+import { Destination, ITransfer, IPaginatedTransfer } from '../transfer/transfer.interface';
 import { ITransferInfo } from './info.interface';
 import { IUser } from '../user/user.interface';
 import { getUser } from '../user/user.service';
@@ -16,30 +16,40 @@ const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
   /**
-   * Get transfer infos by -
-   * fileID - returns all transfers infos that related to the file id
-   * sharerID - returns all transfers infos that related to the sharer id
-   * fileID and sharerID - returns all transfers that done by sharerID for the fileID
-   * @param fileID
-   * @param sharerID
-   * @returns ITransferInfo[] - transfer infos array
+   * GetTransfersInfo returns an object containing transfers array,
+   * unique by reqID and filtered by fileID and sharerID.
+   * If pageSize > 0 then a paginated result is returned.
+   * @param call.request.fileID     - the fileID of the requested transfers.
+   * @param call.request.sharerID   - the sharerID of the requested transfers.
+   * @param call.request.pageNum    - the index of paginated page in the requested transfers.
+   * @param call.request.pageSize   - the size of the page.
+   * @returns { ITransferInfo[], transfersCount }   - an object of transfer infos array and the count of all the transfers
    */
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[], transfersCount: number }> {
+    const pageNum: number = +call.request.pageNum || 0;
+    const pageSize: number = +call.request.pageSize || 0;
+    if (pageNum < 0 || pageSize < 0) {
+      throw new ArgumentInvalidError(`pageNum ${pageNum} and pageSize ${pageSize} must both be non-negative`);
+    }
+
     const fileID: string = call.request.fileID;
     const sharerID: string = call.request.sharerID;
 
     // Get all transfers that match to fileID and userID
-    const partialFilter: Partial<ITransfer> = {};
+    const partialFilter: Partial<ITransfer> = { };
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    let transfers: ITransfer[] = await TransferRepository.getMany(partialFilter);
-    transfers = transfers.filter(
-      (transfer, index, self) => index === self.findIndex((anotherTransfer) => anotherTransfer.reqID === transfer.reqID)
-    );
+    const [transfersCount, paginatedTransfers] = await Promise.all([
+      TransferRepository.getSize(partialFilter),
+      TransferRepository.getMany(partialFilter, pageNum, pageSize),
+    ]);
+    const transfers: ITransfer[] = paginatedTransfers.map(pt => pt.docs);
 
-    if (!transfers.length) return { transfersInfo: [] };
+    if (!transfers.length) return { transfersCount, transfersInfo: [] };
 
+    // Validate the transfers with user-service (check they exist),
+    // and check if status update is required.
     const transfersInfo: ITransferInfo[] = await Promise.all(
       transfers.map(async (transfer: ITransfer) => {
         const requestID = transfer.reqID;
@@ -85,8 +95,7 @@ export class DropboxMethods {
         };
       })
     );
-
-    return { transfersInfo };
+    return { transfersInfo, transfersCount };
   }
 
   /**

@@ -11,3 +11,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - minor: ([5](https://github.com/meateam/dropbox-service/pull/5)): add js+ts proto compiling
+- major: ([7](https://github.com/meateam/dropbox-service/pull/7)): add aggregation count of transfers as transfersCount to GetTransfersInfoResponse

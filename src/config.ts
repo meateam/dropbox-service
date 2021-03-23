@@ -2,7 +2,7 @@ export const config = {
   serviceName: 'dropbox-service',
   server: {
     bindAddress: process.env.BIND_ADDRESS || '0.0.0.0:8080',
-    debugMode: process.env.NODE_ENV || 'dev',
+    debugMode: process.env.DEBUG_MODE === 'true',
   },
   spike: {
     audience: process.env.DROPBOX_AUDIENCE || '_LCF5avgIpoXSWhY5Jl8mMi0Q~4_~R',

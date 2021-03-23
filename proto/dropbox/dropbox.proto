@@ -87,6 +87,8 @@ message HasTransferResponse {
 message GetTransfersInfoRequest {
   string fileID = 1;
   string sharerID = 2;
+  int64 pageNum = 3;
+  int64 pageSize = 4;
 }
 
 message TransferInfoResponse {
@@ -104,5 +106,6 @@ message TransferInfoResponse {
 }
 
 message GetTransfersInfoResponse {
-  repeated TransferInfoResponse transfersInfo = 1; 
+  repeated TransferInfoResponse transfersInfo = 1;
+  int64 transfersCount = 2;
 }
