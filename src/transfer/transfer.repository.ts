@@ -51,21 +51,6 @@ export class TransferRepository {
       {
         $group: {
           _id: '$reqID',
-          docs:{
-            $first: {
-              _id: '$_id',
-              reqID: '$reqID',
-              fileID: '$fileID',
-              fileName: '$fileName',
-              classification: '$classification',
-              fileOwnerID: '$fileOwnerID',
-              status: '$status',
-              userID: '$userID',
-              sharerID: '$sharerID',
-              createdAt: '$createdAt',
-              destination: '$destination',
-            }
-          }
         }
       },
       {
