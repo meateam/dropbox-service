@@ -23,9 +23,13 @@ export class DropboxMethods {
    * @param call.request.sharerID   - the sharerID of the requested transfers.
    * @param call.request.pageNum    - the index of paginated page in the requested transfers.
    * @param call.request.pageSize   - the size of the page.
-   * @returns { ITransferInfo[], transfersCount }   - an object of transfer infos array and the count of all the transfers
+   * @returns { transfersInfo : ITransferInfo[], itemCount : number, pageNum : number } - An object of:
+   *  - Transfer infos array 
+   *  - The count total number of grouped transfers, 
+   *  - The page number requested
    */
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[], transfersCount: number }> {
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): 
+          Promise<{ transfersInfo: ITransferInfo[], itemCount: number, pageNum: number }> {
     const pageNum: number = +call.request.pageNum || 0;
     const pageSize: number = +call.request.pageSize || 0;
     if (pageNum < 0 || pageSize < 0) {
@@ -40,13 +44,13 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const [transfersCount, paginatedTransfers] = await Promise.all([
+    const [itemCount, paginatedTransfers] = await Promise.all([
       TransferRepository.getSize(partialFilter),
       TransferRepository.getMany(partialFilter, pageNum, pageSize),
     ]);
     const transfers: ITransfer[] = paginatedTransfers.map(pt => pt.docs);
 
-    if (!transfers.length) return { transfersCount, transfersInfo: [] };
+    if (!transfers.length) return { pageNum, itemCount, transfersInfo: [] };
 
     // Validate the transfers with user-service (check they exist),
     // and check if status update is required.
@@ -95,7 +99,7 @@ export class DropboxMethods {
         };
       })
     );
-    return { transfersInfo, transfersCount };
+    return { pageNum, itemCount, transfersInfo };
   }
 
   /**

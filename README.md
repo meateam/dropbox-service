@@ -1,6 +1,6 @@
 # dropbox-service
 **Compiling Protobuf To Golang:**
-- `protoc -I proto/ proto/dropbox/dropbox.proto --go_out=plugins=grpc:./proto`
+- `protoc -I proto/ proto/dropbox/dropbox.proto --go_out=:./proto --go-grpc_out=./proto`
 
 ## Compiling proto prerequisite
 ### In order to compile the proto file make sure you have `grpc-tools`, `protoc` and `protoc-gen-go` installed globaly:
