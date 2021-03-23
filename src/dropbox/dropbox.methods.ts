@@ -16,16 +16,16 @@ const statusService: StatusService = new StatusService();
 
 export class DropboxMethods {
   /**
-   * GetTransfersInfo returns an object containing transfers array, 
+   * GetTransfersInfo returns an object containing transfers array,
    * unique by reqID and filtered by fileID and sharerID.
    * If pageSize > 0 then a paginated result is returned.
    * @param call.request.fileID     - the fileID of the requested transfers.
    * @param call.request.sharerID   - the sharerID of the requested transfers.
    * @param call.request.pageNum    - the index of paginated page in the requested transfers.
    * @param call.request.pageSize   - the size of the page.
-   * @returns { ITransferInfo[] }   - an object of transfer infos array
+   * @returns { ITransferInfo[], transfersCount }   - an object of transfer infos array and the count of all the transfers
    */
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[] }> {
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): Promise<{ transfersInfo: ITransferInfo[], transfersCount: number }> {
     const pageNum: number = +call.request.pageNum || 0;
     const pageSize: number = +call.request.pageSize || 0;
     if (pageNum < 0 || pageSize < 0) {
@@ -40,12 +40,15 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const paginatedTransfers: IPaginatedTransfer[] = await TransferRepository.getMany(partialFilter, pageNum, pageSize);
-    let transfers : ITransfer[] = paginatedTransfers.map( pt => pt.docs);
+    const [transfersCount, paginatedTransfers] = await Promise.all([
+      TransferRepository.getSize(partialFilter),
+      TransferRepository.getMany(partialFilter, pageNum, pageSize),
+    ]);
+    const transfers: ITransfer[] = paginatedTransfers.map(pt => pt.docs);
 
-    if (!transfers.length) return { transfersInfo: [] };
+    if (!transfers.length) return { transfersCount, transfersInfo: [] };
 
-    // Validate the transfers with user-service (check they exist), 
+    // Validate the transfers with user-service (check they exist),
     // and check if status update is required.
     const transfersInfo: ITransferInfo[] = await Promise.all(
       transfers.map(async (transfer: ITransfer) => {
@@ -92,8 +95,7 @@ export class DropboxMethods {
         };
       })
     );
-
-    return { transfersInfo };
+    return { transfersInfo, transfersCount };
   }
 
   /**
