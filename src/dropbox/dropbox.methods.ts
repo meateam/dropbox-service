@@ -162,16 +162,16 @@ export class DropboxMethods {
     }
 
     // Check if the users is valid
-    // if (destUsers.length < 1) throw new ClientError('must require at least 1 dest user');
-    // await Promise.all(
-    //   destUsers.map(async (destUser: IApprovalUser) => {
-    //     try {
-    //       await getUser(destUser.id, destination);
-    //     } catch (error) {
-    //       throw new ClientError(`cant get user: ${destUser.id} with destination: ${destination}`);
-    //     }
-    //   })
-    // );
+    if (destUsers.length < 1) throw new ClientError('must require at least 1 dest user');
+    await Promise.all(
+      destUsers.map(async (destUser: IApprovalUser) => {
+        try {
+          await getUser(destUser.id, destination);
+        } catch (error) {
+          throw new ClientError(`cant get user: ${destUser.id} with destination: ${destination}`);
+        }
+      })
+    );
 
     approvers.push(sharerID);
     const reqID = new ObjectID().toString();
@@ -193,17 +193,17 @@ export class DropboxMethods {
       })
     );
 
-    // const request: IRequest = {
-    //   approvers,
-    //   id: reqID,
-    //   fileId: params.fileID,
-    //   fileName: params.fileName,
-    //   to: params.users,
-    //   from: params.sharerID,
-    //   info: params.info,
-    //   classification: params.classification,
-    // };
-    // await approvalService.createRequest(request, destination);
+    const request: IRequest = {
+      approvers,
+      id: reqID,
+      fileId: params.fileID,
+      fileName: params.fileName,
+      to: params.users,
+      from: params.sharerID,
+      info: params.info,
+      classification: params.classification,
+    };
+    await approvalService.createRequest(request, destination);
 
     return {};
   }
