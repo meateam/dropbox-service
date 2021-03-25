@@ -9,7 +9,7 @@ export class TransferRepository {
     return transfer;
   }
 
-  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<IPaginatedTransfer[]> {
+  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<{ transfers: IPaginatedTransfer[], count: number }> {
     const startingIndex : number = pageNum * pageSize;
     const aggregationQuery : any[] = [
       {
@@ -35,11 +35,59 @@ export class TransferRepository {
           }
         }
       },
+      {
+        $facet: {
+          totalCount: [
+            { $count: 'count' }
+          ],
+          pipelineResults: [{
+            $project: { _id: 1, docs: 1, }
+          }],
+        }
+      },
+      {
+        $unwind: '$pipelineResults',
+      },
+      {
+        $unwind: '$totalCount',
+      },
+      {
+        $project: {
+          _id: '$pipelineResults._id',
+          docs: '$pipelineResults.docs',
+          count: '$totalCount.count',
+        }
+      },
     { $sort: { _id: -1 } }];
     if (pageSize > 0) {
       aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
     }
-    const transfers: IPaginatedTransfer[] = await transferModel.aggregate(aggregationQuery);
+    aggregationQuery.push(
+      {
+        $facet: {
+          transfers: [{
+            $project: { _id: 1, docs: 1, }
+          }],
+          count: [
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          count: {
+            $arrayElemAt: ['$count.count', 0],
+          },
+          transfers: 1,
+        }
+      });
+    const transfers: { transfers: IPaginatedTransfer[], count: number } = (await transferModel.aggregate(aggregationQuery))[0];
+
     return transfers;
   }
 

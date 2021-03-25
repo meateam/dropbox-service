@@ -40,10 +40,10 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const [transfersCount, paginatedTransfers] = await Promise.all([
-      TransferRepository.getSize(partialFilter),
-      TransferRepository.getMany(partialFilter, pageNum, pageSize),
-    ]);
+    const paginatedTransfersInfo = await TransferRepository.getMany(partialFilter, pageNum, pageSize);
+    const paginatedTransfers = paginatedTransfersInfo.transfers;
+    const transfersCount = paginatedTransfersInfo.count;
+
     const transfers: ITransfer[] = paginatedTransfers.map(pt => pt.docs);
 
     if (!transfers.length) return { transfersCount, transfersInfo: [] };
@@ -190,8 +190,7 @@ export class DropboxMethods {
           createdAt: new Date(),
         });
         if (!transfer) throw new TransferError();
-      })
-    );
+      }));
 
     const request: IRequest = {
       approvers,
