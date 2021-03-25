@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package dropbox;
+option go_package = "./dropbox";
 
 service Dropbox {
   rpc GetApproverInfo(GetApproverInfoRequest) returns(GetApproverInfoResponse) {}
@@ -107,5 +108,6 @@ message TransferInfoResponse {
 
 message GetTransfersInfoResponse {
   repeated TransferInfoResponse transfersInfo = 1;
-  int64 transfersCount = 2;
+	int64 itemCount = 2;
+  int64 pageNum = 3;
 }

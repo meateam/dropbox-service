@@ -91,24 +91,6 @@ export class TransferRepository {
     return transfers;
   }
 
-  static async getSize(filter: any): Promise<number> {
-    const aggregationQuery : any[] = [
-      {
-        $match: filter
-      },
-      {
-        $group: {
-          _id: '$reqID',
-        }
-      },
-      {
-        $count: 'count'
-      }];
-
-    const transfersCount: { count: number }[] = await transferModel.aggregate(aggregationQuery);
-    return transfersCount.length > 0 ? transfersCount[0].count : 0;
-  }
-
   static async getByID(id: string): Promise<ITransfer | null> {
     const transfer: ITransfer | null = await transferModel.findById(id).exec();
     return transfer;
