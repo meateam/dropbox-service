@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package dropbox;
+option go_package = "./dropbox";
 
 service Dropbox {
   rpc GetApproverInfo(GetApproverInfoRequest) returns(GetApproverInfoResponse) {}
@@ -10,8 +11,35 @@ service Dropbox {
   rpc GetTransfersInfo(GetTransfersInfoRequest) returns(GetTransfersInfoResponse) {}
 }
 
+message Unit {
+  string name =1;
+  repeated string approvers = 2;
+}
+
+message ApprovalUser {
+  string id = 1;
+  string name = 2;
+}
+
+message Status {
+  string name = 1;
+  string displayName = 2;
+  string type = 3;
+}
+
+message User {
+  string id = 1;
+  string mail = 2;
+  string firstName = 3;
+  string lastName = 4;
+  string fullName = 5;
+  repeated string hierarchy = 6;
+  string hierarchyFlat = 7;
+}
+
 message GetApproverInfoRequest { 
   string id = 1; 
+  string destination = 2;
 }
 
 message GetApproverInfoResponse { 
@@ -19,12 +47,13 @@ message GetApproverInfoResponse {
   bool isAdmin = 2;
   bool isApprover = 3;
   bool isBlocked = 4;
-  string unitName = 5;
+  Unit unit = 5;
 }
 
 message CanApproveToUserRequest {
   string approverID = 1;
   string userID = 2;
+  string destination = 3;
 }
 
 message CanApproveToUserResponse {
@@ -35,19 +64,17 @@ message CanApproveToUserResponse {
 message CreateRequestRequest {
   string fileID = 1;
   string sharerID = 2;
-  repeated User users = 3;
+  repeated ApprovalUser users = 3;
   string classification = 4;
   string info = 5;
   repeated string approvers = 6;
   string fileName = 7;
-}
-
-message User {
-  string id = 1;
-  string name = 2;
+  string destination = 8;
+  string ownerID = 9;
 }
 
 message CreateRequestResponse {}
+
 
 message HasTransferRequest {
   string fileID = 1;
@@ -60,14 +87,27 @@ message HasTransferResponse {
 
 message GetTransfersInfoRequest {
   string fileID = 1;
-  string userID = 2;
+  string sharerID = 2;
+  int64 pageNum = 3;
+  int64 pageSize = 4;
+}
+
+message TransferInfoResponse {
+  string  fileID = 1;
+  string  from = 2;
+  string  destination = 3;
+  repeated Status  status = 4;
+  int64   createdAt = 5;
+  repeated User to = 6;
+  repeated string failed = 7;
+  string id = 8;
+  string classification = 9;
+  string fileName = 10;
+  string fileOwnerID = 11;
 }
 
 message GetTransfersInfoResponse {
-  string fileID = 1;
-  string from = 2;
-  string destination = 3;
-  string status = 4;
-  int64 createdAt = 5;
-  repeated User to = 6;
+  repeated TransferInfoResponse transfersInfo = 1;
+	int64 itemCount = 2;
+  int64 pageNum = 3;
 }

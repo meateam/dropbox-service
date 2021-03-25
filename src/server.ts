@@ -8,68 +8,67 @@ import { wrapper } from './utils/wrapper';
 import { DropboxMethods } from './dropbox/dropbox.methods';
 
 apm.start({
-    serviceName: config.serviceName,
-    secretToken: config.apm.secretToken,
-    verifyServerCert: config.apm.verifyServerCert,
-    serverUrl: config.apm.apmURL,
+  serviceName: config.serviceName,
+  secretToken: config.apm.secretToken,
+  verifyServerCert: config.apm.verifyServerCert,
+  serverUrl: config.apm.apmURL,
 });
 
 export const serviceNames: string[] = ['', 'dropbox.dropboxService'];
+export const healthCheckStatusMap: any = {
+  '': HealthCheckResponse.ServingStatus.UNKNOWN,
+  [config.serviceName]: HealthCheckResponse.ServingStatus.UNKNOWN
+};
 
 export class Server {
 
-    private dropbox_proto: any;
-    public server: grpc.Server;
-    public grpcHealthCheck: GrpcHealthCheck;
+  private dropbox_proto: any;
+  public server: grpc.Server;
+  public grpcHealthCheck: GrpcHealthCheck;
 
-    public constructor(address: string) {
-        this.server = new grpc.Server();
-        this.grpcHealthCheck = new GrpcHealthCheck({
-            '': HealthCheckResponse.ServingStatus.UNKNOWN,
-            serviceName: HealthCheckResponse.ServingStatus.UNKNOWN
-        });
+  public constructor(address: string) {
+    // Create the server
+    this.server = new grpc.Server();
 
-        this.initiateProto();
-        this.addServices();
-        this.server.bind(address, grpc.ServerCredentials.createInsecure());
-        log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
-    }
+    // Register the health service
+    this.grpcHealthCheck = new GrpcHealthCheck(healthCheckStatusMap);
 
-    private initiateProto() {
-        const DROPBOX_PROTO_PATH: string = './proto/dropbox/dropbox.proto';
+    this.initiateProto();
+    this.addServices();
 
-        // Suggested options for similarity to existing grpc.load behavior
-        const dropboxPackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
-            DROPBOX_PROTO_PATH,
-            {
-                keepCase: true,
-                longs: String,
-                enums: String,
-                defaults: true,
-                oneofs: true,
-            });
+    // Bind the server
+    this.server.bind(address, grpc.ServerCredentials.createInsecure());
+    log(Severity.INFO, `server listening on address: ${address}`, 'server bind');
+  }
 
-        // Has the full package hierarchy
-        const dropboxProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(dropboxPackageDefinition);
+  private initiateProto() {
+    const DROPBOX_PROTO_PATH: string = './proto/dropbox/dropbox.proto';
 
-        this.dropbox_proto = dropboxProtoDescriptor.dropbox;
-    }
+    // Suggested options for similarity to existing grpc.load behavior
+    const dropboxPackageDefinition: protoLoader.PackageDefinition = protoLoader.loadSync(
+            DROPBOX_PROTO_PATH, { keepCase: true, longs: String, enums: String, defaults: true, oneofs: true });
 
-    private addServices() {
-        this.server.addService(HealthService, this.grpcHealthCheck);
+    // Has the full package hierarchy
+    const dropboxProtoDescriptor: grpc.GrpcObject = grpc.loadPackageDefinition(dropboxPackageDefinition);
 
-        const dropboxService = {
-            CanApproveToUser: wrapper(DropboxMethods.CanApproveToUser),
-            CreateRequest: wrapper(DropboxMethods.CreateRequest),
-            HasTransfer: wrapper(DropboxMethods.HasTransfer),
-            GetTransfersInfo: wrapper(DropboxMethods.GetTransfersInfo),
-            GetApproverInfo: wrapper(DropboxMethods.GetApproverInfo)
-        };
+    this.dropbox_proto = dropboxProtoDescriptor.dropbox;
+  }
 
-        this.server.addService(this.dropbox_proto.Dropbox.service, dropboxService);
-    }
+  private addServices() {
+    this.server.addService(HealthService, this.grpcHealthCheck);
 
-    public setHealthStatus(status: number): void {
-        serviceNames.forEach((serviceName) => this.grpcHealthCheck.setStatus(serviceName, status));
-    }
+    const dropboxService = {
+      CanApproveToUser: wrapper(DropboxMethods.CanApproveToUser),
+      CreateRequest: wrapper(DropboxMethods.CreateRequest),
+      HasTransfer: wrapper(DropboxMethods.HasTransfer),
+      GetTransfersInfo: wrapper(DropboxMethods.GetTransfersInfo),
+      GetApproverInfo: wrapper(DropboxMethods.GetApproverInfo)
+    };
+
+    this.server.addService(this.dropbox_proto.Dropbox.service, dropboxService);
+  }
+
+  public setHealthStatus(status: number): void {
+    serviceNames.forEach(serviceName => this.grpcHealthCheck.setStatus(serviceName, status));
+  }
 }

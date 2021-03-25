@@ -1,11 +1,17 @@
-import { Destination } from "../transfer/transfer.interface";
-import { IUser } from "../utils/user.interface";
+import { Status } from '../status/status.interface';
+import { Destination } from '../transfer/transfer.interface';
+import { IUser } from '../user/user.interface';
 
 export interface ITransferInfo {
-    fileID: string;
-    from: string;
-    createdAt: Date;
-    destination: Destination;
-    to: IUser[];
-    status: string;
+  id: string;
+  fileID: string;
+  fileOwnerID: string;
+  fileName: string;
+  from: string;
+  createdAt: Date | number;
+  destination: Destination;
+  to: IUser[];
+  classification: string;
+  status: Status[];
+  failed: string[];
 }
