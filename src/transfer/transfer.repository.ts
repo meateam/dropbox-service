@@ -9,16 +9,20 @@ export class TransferRepository {
     return transfer;
   }
 
-  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<{ transfers: IPaginatedTransfer[], count: number }> {
-    const startingIndex : number = pageNum * pageSize;
-    const aggregationQuery : any[] = [
+  static async getMany(
+    filter: any,
+    pageNum = 0,
+    pageSize = 0
+  ): Promise<{ transfers: IPaginatedTransfer[]; count: number }> {
+    const startingIndex: number = pageNum * pageSize;
+    const aggregationQuery: any[] = [
       {
-        $match: filter
+        $match: filter,
       },
       {
         $group: {
           _id: '$reqID',
-          docs:{
+          docs: {
             $first: {
               _id: '$_id',
               reqID: '$reqID',
@@ -31,19 +35,19 @@ export class TransferRepository {
               sharerID: '$sharerID',
               createdAt: '$createdAt',
               destination: '$destination',
-            }
-          }
-        }
+            },
+          },
+        },
       },
       {
         $facet: {
-          totalCount: [
-            { $count: 'count' }
+          totalCount: [{ $count: 'count' }],
+          pipelineResults: [
+            {
+              $project: { _id: 1, docs: 1 },
+            },
           ],
-          pipelineResults: [{
-            $project: { _id: 1, docs: 1, }
-          }],
-        }
+        },
       },
       {
         $unwind: '$pipelineResults',
@@ -56,27 +60,30 @@ export class TransferRepository {
           _id: '$pipelineResults._id',
           docs: '$pipelineResults.docs',
           count: '$totalCount.count',
-        }
+        },
       },
-    { $sort: { _id: -1 } }];
+      { $sort: { _id: -1 } },
+    ];
     if (pageSize > 0) {
       aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
     }
     aggregationQuery.push(
       {
         $facet: {
-          transfers: [{
-            $project: { _id: 1, docs: 1, }
-          }],
+          transfers: [
+            {
+              $project: { _id: 1, docs: 1 },
+            },
+          ],
           count: [
             {
               $project: {
                 _id: 0,
                 count: 1,
-              }
-            }
-          ]
-        }
+              },
+            },
+          ],
+        },
       },
       {
         $project: {
@@ -84,11 +91,76 @@ export class TransferRepository {
             $arrayElemAt: ['$count.count', 0],
           },
           transfers: 1,
-        }
-      });
-    const transfers: { transfers: IPaginatedTransfer[], count: number } = (await transferModel.aggregate(aggregationQuery))[0];
+        },
+      }
+    );
+    const transfers: { transfers: IPaginatedTransfer[]; count: number } = (
+      await transferModel.aggregate(aggregationQuery)
+    )[0];
 
     return transfers;
+  }
+
+  static async getMany2(
+    filter: any,
+    pageNum = 0,
+    pageSize = 0
+  ): Promise<IPaginatedTransfer[]> {
+    const startingIndex: number = pageNum * pageSize;
+    const aggregationQuery: any[] = [
+      {
+        $match: filter,
+      },
+      {
+        $group: {
+          _id: '$reqID',
+          docs: {
+            $first: {
+              _id: '$_id',
+              reqID: '$reqID',
+              fileID: '$fileID',
+              fileName: '$fileName',
+              classification: '$classification',
+              fileOwnerID: '$fileOwnerID',
+              status: '$status',
+              userID: '$userID',
+              sharerID: '$sharerID',
+              createdAt: '$createdAt',
+              destination: '$destination',
+            },
+          },
+        },
+      },
+      { $sort: { _id: -1 } },
+    ];
+    if (pageSize > 0) {
+      aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
+    }
+    const transfers: IPaginatedTransfer[] = await transferModel.aggregate(
+      aggregationQuery
+    );
+    return transfers;
+  }
+
+  static async getSize(filter: any): Promise<number> {
+    const aggregationQuery: any[] = [
+      {
+        $match: filter,
+      },
+      {
+        $group: {
+          _id: '$reqID',
+        },
+      },
+      {
+        $count: 'count',
+      },
+    ];
+
+    const transfersCount: { count: number }[] = await transferModel.aggregate(
+      aggregationQuery
+    );
+    return transfersCount.length > 0 ? transfersCount[0].count : 0;
   }
 
   static async getByID(id: string): Promise<ITransfer | null> {
