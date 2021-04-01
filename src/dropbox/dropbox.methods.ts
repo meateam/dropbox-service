@@ -29,7 +29,6 @@ const fs = require('fs');
 const approvalService: ApprovalService = new ApprovalService();
 const statusService: StatusService = new StatusService();
 
-let resTimeArray: any[] = [];
 let T1TotalTimeArray: any[] = [];
 let T2TotalTimeArray: any[] = [];
 let T3TotalTimeArray: any[] = [];
@@ -55,7 +54,7 @@ export class DropboxMethods {
     itemCount: number;
     pageNum: number;
   }> {
-    const AggType: number = +call.request.type || 1;
+    const AggType: number = +call.request.type || 3;
     const pageNum: number = +call.request.pageNum || 0;
     const pageSize: number = +call.request.pageSize || 0;
     if (pageNum < 0 || pageSize < 0) {
@@ -128,25 +127,24 @@ export class DropboxMethods {
 
         // Check transfer status at status-service and update the status in mongo
         try {
-          const statusRes: IStatus = await statusService.getStatus(requestID);
-          statusTransfer.push(...statusRes.status);
-
-          // Get destination users
-          await Promise.all(
-            statusRes.direction.to.map(async (destUser) => {
-              try {
-                const user: IUser = await getUser(
-                  destUser,
-                  transfer.destination
-                );
-                destUsers.push(user);
-              } catch (error) {
-                failed.push(
-                  `cant get user ${destUser} for dest: ${transfer.destination}`
-                );
-              }
-            })
-          );
+          // const statusRes: IStatus = await statusService.getStatus(requestID);
+          // statusTransfer.push(...statusRes.status);
+          // // Get destination users
+          // await Promise.all(
+          //   statusRes.direction.to.map(async (destUser) => {
+          //     try {
+          //       const user: IUser = await getUser(
+          //         destUser,
+          //         transfer.destination
+          //       );
+          //       destUsers.push(user);
+          //     } catch (error) {
+          //       failed.push(
+          //         `cant get user ${destUser} for dest: ${transfer.destination}`
+          //       );
+          //     }
+          //   })
+          // );
         } catch (error) {
           failed.push(`cant get status, err: ${error}`);
         }
@@ -200,10 +198,10 @@ export class DropboxMethods {
   ): Promise<IApproverInfo> {
     const TOTAL_NUM = +call.request.destination;
 
-    for (let i = 0; i < TOTAL_NUM; i += 10) {
+    for (let i = 0; i < TOTAL_NUM; i += 1) {
       console.log(`total created: ${i}`);
-      await DropboxMethods.CreateTrans(10, i / 10);
-      await DropboxMethods.Benchmarking(i);
+      await DropboxMethods.CreateTrans();
+      await DropboxMethods.Benchmarking();
     }
     // Requiring fs module in which
     // writeFile function is defined.
@@ -211,9 +209,9 @@ export class DropboxMethods {
     // Data which will write in a file.
     let data =
       T1TotalTimeArray.toString() +
-      '/n' +
+      '\n' +
       T2TotalTimeArray.toString() +
-      '/n' +
+      '\n' +
       T3TotalTimeArray.toString();
 
     // Write data in 'Output.txt' .
@@ -221,7 +219,9 @@ export class DropboxMethods {
       // In case of a error throw err.
       if (err) throw err;
     });
-
+    T1TotalTimeArray = [];
+    T2TotalTimeArray = [];
+    T3TotalTimeArray = [];
     // if (call.request.id === 'create') {
     //   DropboxMethods.CreateTrans(+call.request.destination);
     // } else {
@@ -321,45 +321,57 @@ export class DropboxMethods {
     return {};
   }
 
-  static async CreateTrans(repetitions: number, name: number) {
-    console.log(`Creating ${repetitions} transfers`);
-    let num: number = name;
-    let currObj = jsonObj;
-    currObj.fileID += '' + num;
-    currObj.sharerID += '' + num;
-
-    const FName = jsonObj.fileID;
-    const SName = jsonObj.sharerID;
-
-    for (let i = 0; i < repetitions; i++) {
-      await this.CreateRequest(CreateReqWrapper(currObj, 0));
-      if (i % 100 == 0) {
-        console.log(`created ${i} transfers`);
-        currObj = jsonObj;
-        num++;
-        currObj.fileID = FName + '' + num;
-        currObj.sharerID = SName + '' + num;
-        console.log(currObj);
-      }
+  // Create 100 transactions fileID 0-99
+  static async CreateTrans() {
+    const promises = [];
+    for (let i = 0; i < 100; i++) {
+      promises.push(
+        this.CreateRequest(
+          CreateReqWrapper(
+            {
+              fileID: jsonObj.fileID + '' + i,
+              sharerID: jsonObj.sharerID,
+              users: jsonObj.users,
+              classification: jsonObj.classification,
+              info: jsonObj.info,
+              approvers: jsonObj.approvers,
+              fileName: jsonObj.fileName,
+              destination: jsonObj.destination,
+              ownerID: jsonObj.ownerID,
+            },
+            0
+          )
+        )
+      );
     }
+    await Promise.all(promises)
+      .then(() => {
+        console.log(`created 100`);
+      })
+      .catch((e) => {
+        console.log(`ERROR: ${e}`);
+      });
+    // await this.CreateRequest(CreateReqWrapper(currObj, 0));
   }
 
-  static async Benchmarking(totalTrans: number) {
+  static async Benchmarking() {
     for (let type = 1; type <= 3; type++) {
       console.log(`type: ${type}`);
-      let num = Math.floor(Math.random() * (totalTrans + 10));
-      console.log(`num: ${num}`);
+      let num1 = Math.floor(Math.random() * 20);
+      let num2 = Math.floor(Math.random() * 5) + 5;
+      let num3 = Math.floor(Math.random() * 100);
       let res = await this.GetTransfersInfo(
         CreateReqWrapper(
           {
-            fileID: jsonObj2.fileID + num,
-            sharerID: jsonObj2.sharerID + num,
-            pageNum: 5,
-            pageSize: 10,
+            fileID: jsonObj2.fileID + num3,
+            sharerID: jsonObj2.sharerID,
+            pageNum: num1,
+            pageSize: num2,
           },
           type
         )
       );
+      // console.log(res);
       console.log(`res.itemCount: ${res.itemCount}`);
       sumTime = 0;
     }
@@ -399,24 +411,24 @@ const jsonObj = {
       name: 'user5Name',
     },
     {
-      id: 'userID6',
-      name: 'user6Name',
-    },
-    {
-      id: 'userID7',
-      name: 'user7Name',
-    },
-    {
-      id: 'userID8',
-      name: 'user8Name',
-    },
-    {
-      id: 'userID9',
-      name: 'user9Name',
-    },
-    {
-      id: 'userID10',
-      name: 'user10Name',
+      //   id: 'userID6',
+      //   name: 'user6Name',
+      // },
+      // {
+      //   id: 'userID7',
+      //   name: 'user7Name',
+      // },
+      // {
+      //   id: 'userID8',
+      //   name: 'user8Name',
+      // },
+      // {
+      //   id: 'userID9',
+      //   name: 'user9Name',
+      // },
+      // {
+      //   id: 'userID10',
+      //   name: 'user10Name',
     },
   ],
   classification: 'Hello',
@@ -433,3 +445,4 @@ const jsonObj2 = {
   pageNum: 6,
   pageSize: 10,
 };
+Object.freeze(jsonObj2);
