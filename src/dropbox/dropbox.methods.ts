@@ -197,11 +197,13 @@ export class DropboxMethods {
     call: grpc.ServerUnaryCall<any>
   ): Promise<IApproverInfo> {
     const TOTAL_NUM = +call.request.destination;
+    const type = 3; //1/2/3
+    console.log(`type: ${type}`);
 
     for (let i = 0; i < TOTAL_NUM; i += 1) {
       console.log(`total created: ${i}`);
       await DropboxMethods.CreateTrans();
-      await DropboxMethods.Benchmarking();
+      await DropboxMethods.Benchmarking(type);
     }
     // Requiring fs module in which
     // writeFile function is defined.
@@ -325,56 +327,46 @@ export class DropboxMethods {
   static async CreateTrans() {
     const promises = [];
     for (let i = 0; i < 100; i++) {
-      promises.push(
-        this.CreateRequest(
-          CreateReqWrapper(
-            {
-              fileID: jsonObj.fileID + '' + i,
-              sharerID: jsonObj.sharerID,
-              users: jsonObj.users,
-              classification: jsonObj.classification,
-              info: jsonObj.info,
-              approvers: jsonObj.approvers,
-              fileName: jsonObj.fileName,
-              destination: jsonObj.destination,
-              ownerID: jsonObj.ownerID,
-            },
-            0
-          )
-        )
-      );
-    }
-    await Promise.all(promises)
-      .then(() => {
-        console.log(`created 100`);
-      })
-      .catch((e) => {
-        console.log(`ERROR: ${e}`);
-      });
-    // await this.CreateRequest(CreateReqWrapper(currObj, 0));
-  }
-
-  static async Benchmarking() {
-    for (let type = 1; type <= 3; type++) {
-      console.log(`type: ${type}`);
-      let num1 = Math.floor(Math.random() * 20);
-      let num2 = Math.floor(Math.random() * 5) + 5;
-      let num3 = Math.floor(Math.random() * 100);
-      let res = await this.GetTransfersInfo(
+      await this.CreateRequest(
         CreateReqWrapper(
           {
-            fileID: jsonObj2.fileID + num3,
-            sharerID: jsonObj2.sharerID,
-            pageNum: num1,
-            pageSize: num2,
+            fileID: jsonObj.fileID + '' + i,
+            sharerID: jsonObj.sharerID,
+            users: jsonObj.users,
+            classification: jsonObj.classification,
+            info: jsonObj.info,
+            approvers: jsonObj.approvers,
+            fileName: jsonObj.fileName,
+            destination: jsonObj.destination,
+            ownerID: jsonObj.ownerID,
           },
-          type
+          0
         )
       );
-      // console.log(res);
-      console.log(`res.itemCount: ${res.itemCount}`);
-      sumTime = 0;
     }
+  }
+
+  static async Benchmarking(type: number) {
+    // for (let type = 1; type <= 3; type++) {
+    // console.log(`type: ${type}`);
+    let num1 = Math.floor(Math.random() * 20);
+    let num2 = Math.floor(Math.random() * 5) + 5;
+    // let num3 = Math.floor(Math.random() * 100);
+    let res = await this.GetTransfersInfo(
+      CreateReqWrapper(
+        {
+          fileID: '',
+          sharerID: jsonObj2.sharerID,
+          pageNum: num1,
+          pageSize: num2,
+        },
+        type
+      )
+    );
+    // console.log(res);
+    console.log(`res.itemCount: ${res.itemCount}`);
+    sumTime = 0;
+    // }
   }
 }
 
@@ -410,26 +402,26 @@ const jsonObj = {
       id: 'userID5',
       name: 'user5Name',
     },
-    {
-      //   id: 'userID6',
-      //   name: 'user6Name',
-      // },
-      // {
-      //   id: 'userID7',
-      //   name: 'user7Name',
-      // },
-      // {
-      //   id: 'userID8',
-      //   name: 'user8Name',
-      // },
-      // {
-      //   id: 'userID9',
-      //   name: 'user9Name',
-      // },
-      // {
-      //   id: 'userID10',
-      //   name: 'user10Name',
-    },
+    // {
+    //   id: 'userID6',
+    //   name: 'user6Name',
+    // },
+    // {
+    //   id: 'userID7',
+    //   name: 'user7Name',
+    // },
+    // {
+    //   id: 'userID8',
+    //   name: 'user8Name',
+    // },
+    // {
+    //   id: 'userID9',
+    //   name: 'user9Name',
+    // },
+    // {
+    //   id: 'userID10',
+    //   name: 'user10Name',
+    // },
   ],
   classification: 'Hello',
   info: 'Info1',
