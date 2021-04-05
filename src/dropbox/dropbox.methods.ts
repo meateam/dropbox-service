@@ -24,11 +24,11 @@ export class DropboxMethods {
    * @param call.request.pageNum    - the index of paginated page in the requested transfers.
    * @param call.request.pageSize   - the size of the page.
    * @returns { transfersInfo : ITransferInfo[], itemCount : number, pageNum : number } - An object of:
-   *  - Transfer infos array 
-   *  - The count total number of grouped transfers, 
+   *  - Transfer infos array
+   *  - The count total number of grouped transfers,
    *  - The page number requested
    */
-  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>): 
+  static async GetTransfersInfo(call: grpc.ServerUnaryCall<any>):
           Promise<{ transfersInfo: ITransferInfo[], itemCount: number, pageNum: number }> {
     const pageNum: number = +call.request.pageNum || 0;
     const pageSize: number = +call.request.pageSize || 0;
@@ -44,10 +44,10 @@ export class DropboxMethods {
     sharerID.length > 0 ? (partialFilter.sharerID = sharerID) : '';
     fileID.length > 0 ? (partialFilter.fileID = fileID) : '';
 
-    const [itemCount, paginatedTransfers] = await Promise.all([
-      TransferRepository.getSize(partialFilter),
-      TransferRepository.getMany(partialFilter, pageNum, pageSize),
-    ]);
+    const paginatedTransfersInfo = await TransferRepository.getMany(partialFilter, pageNum, pageSize);
+    const paginatedTransfers = paginatedTransfersInfo.transfers;
+    const itemCount = paginatedTransfersInfo.count;
+
     const transfers: ITransfer[] = paginatedTransfers.map(pt => pt.docs);
 
     if (!transfers.length) return { pageNum, itemCount, transfersInfo: [] };
@@ -194,8 +194,7 @@ export class DropboxMethods {
           createdAt: new Date(),
         });
         if (!transfer) throw new TransferError();
-      })
-    );
+      }));
 
     const request: IRequest = {
       approvers,

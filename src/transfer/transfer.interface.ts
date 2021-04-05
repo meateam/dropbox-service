@@ -22,5 +22,5 @@ export enum Destination {
 
 export interface IPaginatedTransfer {
   _id?: string;
-  docs: ITransfer
+  docs: ITransfer;
 }
