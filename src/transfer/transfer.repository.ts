@@ -11,6 +11,10 @@ export class TransferRepository {
 
   static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<{ transfers: IPaginatedTransfer[], count: number }> {
     const startingIndex : number = pageNum * pageSize;
+
+    // The transfers will be in the form of:
+    // [ { _id: ?, docs: [?], count: ? }, ... ]
+    // so the code will paginate these transfers without interupts
     const aggregationQuery : any[] = [
       {
         $match: filter
@@ -59,9 +63,14 @@ export class TransferRepository {
         }
       },
     { $sort: { _id: -1 } }];
-    if (pageSize > 0) {
+
+    if (pageSize > 0) { // Pagination
       aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
     }
+
+    // Transform the transfers object to form:
+    // { transfers: [ { _id: ?, docs: [?] }, ... ], count: ? }
+    // to decrease time performance and overcome potential bugs
     aggregationQuery.push(
       {
         $facet: {
