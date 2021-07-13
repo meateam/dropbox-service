@@ -36,16 +36,15 @@ export async function connectMongo(server: Server) {
  * @param server - the server trying to connect.
  */
 async function startConnectionAttempts(server: Server) {
-  log(Severity.INFO, `connecting to ${config.mongo.connectionString}`, 'connectDB');
-
   const retries = parseInt(config.mongo.connectionRetries, 10);
   const timeout = parseInt(config.mongo.reconnectTimeout, 10);
 
   for (let i = 1; i <= retries; i++) {
     const connectionRes: { success: boolean; error: Error | null } = await connect();
 
+    // if mongo connection attempt has failed
     if (!connectionRes.success) {
-      log(Severity.ERROR, `mongo connection retry (${i}/${retries})`, 'connectDB', getCurrTraceId(), {
+      log(Severity.ERROR, `connection retry (${i}/${retries}) ${connectionRes.error}`, 'connectDB', getCurrTraceId(), {
         errMsg: connectionRes.error?.message,
         stack: connectionRes.error?.stack,
       });
@@ -65,7 +64,7 @@ async function startConnectionAttempts(server: Server) {
  */
 async function connect(): Promise<{ success: boolean; error: Error | null }> {
   let success: boolean = false;
-  let error: Error | null = null;
+  let error = null;
 
   await mongoose.connect(
     config.mongo.connectionString,
