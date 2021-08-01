@@ -63,9 +63,6 @@ async function startConnectionAttempts(server: Server) {
  * Connects to mongo with mongoConnectionString.
  */
 async function connect(): Promise<{ success: boolean; error: Error | null }> {
-  let success: boolean = false;
-  let error = null;
-
   await mongoose.connect(
     config.mongo.connectionString,
     {
@@ -75,16 +72,11 @@ async function connect(): Promise<{ success: boolean; error: Error | null }> {
       useUnifiedTopology: true,
     },
     async (err) => {
-      if (!err) {
-        success = true;
-      } else {
-        success = false;
-        error = err;
-      }
+      return { success: false, error: err };
     }
   );
 
-  return { success, error };
+  return { success: true, error: null };
 }
 
 function sleep(ms: number) {
