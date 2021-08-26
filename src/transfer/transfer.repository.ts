@@ -9,8 +9,12 @@ export class TransferRepository {
     return transfer;
   }
 
-  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<IPaginatedTransfer[]> {
+  static async getMany(filter: any, pageNum = 0, pageSize = 0): Promise<{ transfers: IPaginatedTransfer[], count: number }> {
     const startingIndex : number = pageNum * pageSize;
+
+    // The transfers will be in the form of:
+    // [ { _id: ?, docs: [?], count: ? }, ... ]
+    // so the code will paginate these transfers without interupts
     const aggregationQuery : any[] = [
       {
         $match: filter
@@ -35,30 +39,65 @@ export class TransferRepository {
           }
         }
       },
-    { $sort: { _id: -1 } }];
-    if (pageSize > 0) {
-      aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
-    }
-    const transfers: IPaginatedTransfer[] = await transferModel.aggregate(aggregationQuery);
-    return transfers;
-  }
-
-  static async getSize(filter: any): Promise<number> {
-    const aggregationQuery : any[] = [
       {
-        $match: filter
-      },
-      {
-        $group: {
-          _id: '$reqID',
+        $facet: {
+          totalCount: [
+            { $count: 'count' }
+          ],
+          pipelineResults: [{
+            $project: { _id: 1, docs: 1, }
+          }],
         }
       },
       {
-        $count: 'count'
-      }];
+        $unwind: '$pipelineResults',
+      },
+      {
+        $unwind: '$totalCount',
+      },
+      {
+        $project: {
+          _id: '$pipelineResults._id',
+          docs: '$pipelineResults.docs',
+          count: '$totalCount.count',
+        }
+      },
+    { $sort: { _id: -1 } }];
 
-    const transfersCount: { count: number }[] = await transferModel.aggregate(aggregationQuery);
-    return transfersCount.length > 0 ? transfersCount[0].count : 0;
+    if (pageSize > 0) { // Pagination
+      aggregationQuery.push({ $skip: startingIndex }, { $limit: pageSize });
+    }
+
+    // Transform the transfers object to form:
+    // { transfers: [ { _id: ?, docs: [?] }, ... ], count: ? }
+    // to decrease time performance and overcome potential bugs
+    aggregationQuery.push(
+      {
+        $facet: {
+          transfers: [{
+            $project: { _id: 1, docs: 1, }
+          }],
+          count: [
+            {
+              $project: {
+                _id: 0,
+                count: 1,
+              }
+            }
+          ]
+        }
+      },
+      {
+        $project: {
+          count: {
+            $arrayElemAt: ['$count.count', 0],
+          },
+          transfers: 1,
+        }
+      });
+    const transfers: { transfers: IPaginatedTransfer[], count: number } = (await transferModel.aggregate(aggregationQuery))[0];
+
+    return transfers;
   }
 
   static async getByID(id: string): Promise<ITransfer | null> {
